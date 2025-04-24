@@ -2,6 +2,7 @@ from add_types import IngestionInput, Chunking, Tokenizer, TokenChunker, Sentenc
 import os
 from pydantic import ValidationError
 import pathlib
+from collections import Counter
 
 def test_chunking():
     test_cases = [
@@ -116,4 +117,4 @@ def test_ingestion_input():
         for f in ['tests/data/test.pdf', 'tests/data/test0.pdf', 'tests/data/test1.pdf', 'tests/data/test2.pdf', 'tests/data/test3.pdf', 'tests/data/test4.pdf', 'tests/data/test5.pdf']:
             if pathlib.Path(f).is_file():
                 os.remove(f)
-        assert outcome == c["expected"]
+        assert Counter(outcome) == Counter(c["expected"])
