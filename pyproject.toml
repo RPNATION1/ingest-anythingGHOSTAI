@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ingest-anything"
+version = "0.0.0"
+authors = [
+    { name="Clelia (Astra) Bertelli", email="astraberte9@gmail.com" },
+]
+description = "ingest-anything: from data to vector database effortlessly"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    'chonkie[all]',
+    'llama-index',
+    'llama-index-embeddings-huggingface',
+    'llama-index-vector-stores-qdrant',
+    'fastembed',
+    'pydantic',
+    'pdfitdown',
+]
+
+[project.urls]
+Homepage = "https://github.com/AstraBert/ingest-anything"
+Issues = "https://github.com/AstraBert/ingest-anything/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["ingest_anything*"]
+
+[options.package_data]
+ingest_anything = ["*"]
+
+[tool.hatch.build.targets.wheel]
+only-include = ["src/ingest_anything"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = ""
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest",
+]
+
+[tool.hatch.envs.default.scripts]
+test = "cp src/ingest_anything/ingestion.py tests/ && cp src/ingest_anything/add_types.py tests/ && pytest tests/*.py -p no:warnings && rm tests/ingestion.py && rm tests/add_types.py"
+
+[tool.hatch.envs.default.py-version]
+38 = "3.8"
+39 = "3.9"
+40 = "3.10"
+41 = "3.11"
+42 = "3.12"
