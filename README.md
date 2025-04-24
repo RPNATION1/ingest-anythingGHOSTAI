@@ -1,4 +1,4 @@
-# ingest-everything
+# ingest-anything
 
 ## From data to vector database effortlessly
 
