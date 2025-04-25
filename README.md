@@ -4,16 +4,16 @@
 </div>
 <br>
 <div align="center">
-    <img src="https://raw.githubusercontent.com/AstraBert/ingest-anything/main/img/logo.png" alt="Ingest-Anything Logo">
+    <img src="https://raw.githubusercontent.com/AstraBert/ingest-anything/main/logo.png" alt="Ingest-Anything Logo">
 </div>
 
 
-**`ingest-anything`** is a python package aimed at providing a smooth solution to ingest non-PDF files into vector databases, given that most ingestion pipelines are focused on PDF/markdown files. Using [chonkie](), [PdfItDown](), [Llamaindex](), [Sentence Transformers]() embeddings and [Qdrant](), `ingest-anything` proves a versatile package that automates files ingestion.
+**`ingest-anything`** is a python package aimed at providing a smooth solution to ingest non-PDF files into vector databases, given that most ingestion pipelines are focused on PDF/markdown files. Leveraging [chonkie](https://docs.chonkie.ai/getting-started/introduction), [PdfItDown](https://github.com/AstraBert/PdfItDown), [Llamaindex](https://www.llamaindex.ai), [Sentence Transformers](https://sbert.net) embeddings and [Qdrant](https://qdrant.tech), `ingest-anything` gives you a fully-automated pipeline for document ingestion within few lines of code!
 
 ## Workflow
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/AstraBert/ingest-anything/main/img/workflow.png" alt="Ingest-Anything Workflow">
+    <img src="https://raw.githubusercontent.com/AstraBert/ingest-anything/main/workflow.png" alt="Ingest-Anything Workflow">
 </div>
 
 - The input files are converted into PDF by PdfItDown
@@ -40,8 +40,8 @@ And is available in your python scripts:
 from ingest_anything.ingestion import IngestAnything, QdrantClient, AsyncQdrantClient
 
 coll_name = "Flowers"
-client = QdrantClient(api_key=os.getenv("qdrant_api_key"), url=os.getenv("qdrant_url"))
-aclient = AsyncQdrantClient(api_key=os.getenv("qdrant_api_key"), url=os.getenv("qdrant_url"))
+client = QdrantClient("http://localhost:6333")
+aclient = AsyncQdrantClient("http://localhost:6333")
 ingestor = IngestAnything(qdrant_client=client, async_qdrant_client=aclient, collection_name=coll_name, hybrid_search=True)
 ```
 
