@@ -1,8 +1,26 @@
-# ingest-anything
+<div align="center">
+<h1>ingest-anything</h1>
+<h2>From data to vector database effortlessly</h2>
+</div>
+<br>
+<div align="center">
+    <img src="https://raw.githubusercontent.com/AstraBert/ingest-anything/main/img/logo.png" alt="Ingest-Anything Logo">
+</div>
 
-## From data to vector database effortlessly
 
 **`ingest-anything`** is a python package aimed at providing a smooth solution to ingest non-PDF files into vector databases, given that most ingestion pipelines are focused on PDF/markdown files. Using [chonkie](), [PdfItDown](), [Llamaindex](), [Sentence Transformers]() embeddings and [Qdrant](), `ingest-anything` proves a versatile package that automates files ingestion.
+
+## Workflow
+
+<div align="center">
+    <img src="https://raw.githubusercontent.com/AstraBert/ingest-anything/main/img/workflow.png" alt="Ingest-Anything Workflow">
+</div>
+
+- The input files are converted into PDF by PdfItDown
+- The PDF text is extracted using LlamaIndex readers
+- The text is chunked exploiting Chonkie's functionalities
+- The chunks are embedded thanks to Sentence Transformers models
+- The embeddings are loaded into a Qdrant vector database
 
 ## Installation and usage
 
