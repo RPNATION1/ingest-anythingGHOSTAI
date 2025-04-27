@@ -10,6 +10,8 @@
 
 **`ingest-anything`** is a python package aimed at providing a smooth solution to ingest non-PDF files into vector databases, given that most ingestion pipelines are focused on PDF/markdown files. Leveraging [chonkie](https://docs.chonkie.ai/getting-started/introduction), [PdfItDown](https://github.com/AstraBert/PdfItDown), [Llamaindex](https://www.llamaindex.ai), [Sentence Transformers](https://sbert.net) embeddings and [Qdrant](https://qdrant.tech), `ingest-anything` gives you a fully-automated pipeline for document ingestion within few lines of code!
 
+Find out more about `ingest-anything` on the [Documentation website](https://pdfitdown.eu/built-with-pdfitdown/ingest-anything)!
+
 ## Workflow
 
 <div align="center">
