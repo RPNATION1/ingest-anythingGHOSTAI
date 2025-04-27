@@ -1,4 +1,4 @@
-from add_types import IngestionInput, Chunking, Tokenizer, TokenChunker, SentenceTransformerEmbeddings
+from add_types import IngestionInput, Chunking, Tokenizer, TokenChunker, SentenceTransformerEmbeddings, CodeChunking, CodeChunker, CodeFiles
 import os
 from pydantic import ValidationError
 import pathlib
@@ -41,6 +41,67 @@ def test_chunking():
             outcome = None
         else:
             outcome = [chunks.chunker, chunks.chunk_size, chunks.chunk_overlap, chunks.similarity_threshold, chunks.min_characters_per_chunk, chunks.min_sentences]
+        assert outcome == c["expected"]
+
+def test_code_files():
+    test_cases = [
+        {
+            "files": ["tests/code/acronym.go", "tests/code/animal_magic.go", "tests/code/atbash_cipher_test.go"],
+            "expected": Counter(["tests/code/acronym.go", "tests/code/animal_magic.go", "tests/code/atbash_cipher_test.go"]),
+        },
+        {
+            "files": ["tests/code/acrony.go", "tests/code/animal_magic.go", "tests/code/atbash_cipher_test.go"],
+            "expected": Counter(["tests/code/animal_magic.go", "tests/code/atbash_cipher_test.go"]),
+        },
+        {
+            "files": ["tests/code/acrony.go", "tests/code/animal_magc.go", "tests/code/atbash_cipher_tes.go"],
+            "expected": None,
+        },
+    ]
+    for c in test_cases:
+        try:
+            cfl = CodeFiles(files=c["files"])
+        except ValidationError:
+            outcome = None
+        else:
+            outcome = Counter(cfl.files)
+        assert outcome == c["expected"]
+    
+
+def test_code_chunker():
+    test_cases = [
+        {
+            "language": "go",
+            "return_type": None,
+            "chunk_size": None,
+            "tokenizer": "gpt2",
+            "include_nodes": True,
+            "expected": ["go","chunks",512,True, True,True],
+        },
+        {
+            "language": "pokemon",
+            "return_type": None,
+            "chunk_size": None,
+            "include_nodes": None,
+            "tokenizer": "gpt2",
+            "expected": None,
+        },
+        {
+            "language": "python",
+            "return_type": "text",
+            "chunk_size": None,
+            "tokenizer": "gpt2",
+            "include_nodes": None,
+            "expected": None,
+        },
+    ]
+    for c in test_cases:
+        try:
+            chunks = CodeChunking(chunk_size=c["chunk_size"], language=c["language"], return_type=c["return_type"],tokenizer=c["tokenizer"],include_nodes=c["include_nodes"])
+        except Exception:
+            outcome = None
+        else:
+            outcome = [chunks.language, chunks.return_type, chunks.chunk_size, chunks.include_nodes, isinstance(chunks.tokenizer, Tokenizer), isinstance(chunks.chunker, CodeChunker)]
         assert outcome == c["expected"]
 
 def test_ingestion_input():
