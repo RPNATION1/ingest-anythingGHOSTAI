@@ -1,7 +1,8 @@
 from pydantic import BaseModel, model_validator
 from typing import List, Literal, Optional
+import pathlib
 from typing_extensions import Self
-from chonkie import SentenceTransformerEmbeddings, SemanticChunker, SDPMChunker, TokenChunker, SentenceChunker, LateChunker
+from chonkie import SentenceTransformerEmbeddings, SemanticChunker, SDPMChunker, TokenChunker, SentenceChunker, LateChunker, CodeChunker
 from tokenizers import Tokenizer
 from pdfitdown.pdfconversion import Converter
 
@@ -56,6 +57,65 @@ class Chunking(BaseModel):
             self.min_sentences = 1
         return self
 
+class CodeFiles(BaseModel):
+    """A Pydantic model for validating and processing lists of code file paths.
+
+    This class extends BaseModel to handle file path validation, ensuring that all
+    provided paths exist in the filesystem.
+
+    Attributes:
+        files (List[str]): A list of file paths to be validated.
+
+    Raises:
+        ValueError: When none of the provided file paths exist in the filesystem.
+    """
+    files: List[str]
+    @model_validator(mode="after")
+    def valid_files(self) -> Self:
+        fs = []
+        for f in self.files:
+            if pathlib.Path(f).is_file():
+                fs.append(f)
+        if len(fs) == 0:
+            raise ValueError("The files you provided do not exist")
+        self.files = fs
+        return self
+
+class CodeChunking(BaseModel):
+    """A Pydantic model for configuring code chunking parameters.
+
+    This class handles the configuration and validation of parameters used for chunking code
+    into smaller segments, with support for different programming languages and tokenization methods.
+
+    Attributes:
+        language (str): The programming language of the code to be chunked.
+        return_type (Optional[Literal["chunks", "texts"]]): The format of the chunked output.
+            Defaults to "chunks" if not specified.
+        tokenizer (Optional[str]): The name of the tokenizer to use. Defaults to "gpt2".
+        chunk_size (Optional[int]): The maximum size of each chunk in tokens. Defaults to 512.
+        include_nodes (Optional[bool]): Whether to include AST nodes in the output.
+            Defaults to False.
+    """
+    language: str
+    return_type: Optional[Literal["chunks", "texts"]] = None
+    tokenizer: Optional[str] = None
+    chunk_size: Optional[int] = None
+    include_nodes: Optional[bool] = None
+    chunker: Optional[Literal["code"]] = None
+    @model_validator(mode="after")
+    def validate_chunking(self) -> Self:
+        if self.chunk_size is None:
+            self.chunk_size = 512
+        if self.return_type is None:
+            self.return_type = "chunks"
+        if self.tokenizer is None:
+            self.tokenizer = "gpt2"
+        self.tokenizer = Tokenizer.from_pretrained(self.tokenizer)
+        if self.include_nodes is None:
+            self.include_nodes = False
+        self.chunker = CodeChunker(tokenizer_or_token_counter=self.tokenizer, chunk_size=self.chunk_size, language=self.language, include_nodes=self.include_nodes, return_type=self.return_type)
+        return self
+
 class IngestionInput(BaseModel):
     """
     A class that validates and processes ingestion inputs for document processing.
@@ -105,6 +165,3 @@ class IngestionInput(BaseModel):
         elif self.chunking.chunker == "semantic":
             self.chunking = SemanticChunker(embedding_model=self.embedding_model, threshold=self.chunking.similarity_threshold, min_sentences=self.chunking.min_sentences, chunk_size=self.chunking.chunk_size)
         return self
-
-
-    

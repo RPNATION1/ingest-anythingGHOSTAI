@@ -1,4 +1,4 @@
-from ingestion import IngestAnything, QdrantClient, AsyncQdrantClient, VectorStoreIndex
+from ingestion import IngestAnything, QdrantClient, AsyncQdrantClient, VectorStoreIndex, IngestCode
 import uuid
 import random as r
 import pathlib
@@ -86,5 +86,56 @@ def test_ingestion():
         for f in ['tests/data/test.pdf', 'tests/data/test0.pdf', 'tests/data/test1.pdf', 'tests/data/test2.pdf', 'tests/data/test3.pdf', 'tests/data/test4.pdf', 'tests/data/test5.pdf']:
             if pathlib.Path(f).is_file():
                 os.remove(f)
+        client.delete_collection(collection_name=coll_name)
+        assert outcome == c["expected"]
+
+def test_code_ingestion():
+    test_cases = [
+        {
+            "files": ["tests/code/acronym.go", "tests/code/animal_magic.go", "tests/code/atbash_cipher_test.go"],
+            "language": "go",
+            "return_type": None,
+            "chunk_size": None,
+            "tokenizer": "gpt2",
+            "include_nodes": True,
+            "expected": [True, True],
+        },
+        {
+            "files":["tests/code/acrony.go", "tests/code/animal_magc.go", "tests/code/atbash_cipher_tes.go"],
+            "language": "go",
+            "return_type": None,
+            "chunk_size": None,
+            "tokenizer": "gpt2",
+            "include_nodes": True,
+            "expected": None,
+        },
+        {
+            "files": ["tests/code/acronym.go", "tests/code/animal_magic.go", "tests/code/atbash_cipher_test.go"],
+            "language": "pokemon",
+            "return_type": None,
+            "chunk_size": None,
+            "include_nodes": None,
+            "tokenizer": "gpt2",
+            "expected": None,
+        },
+        {
+            "files": ["tests/code/acronym.go", "tests/code/animal_magic.go", "tests/code/atbash_cipher_test.go"],
+            "language": "python",
+            "return_type": "text",
+            "chunk_size": None,
+            "tokenizer": "gpt2",
+            "include_nodes": None,
+            "expected": None,
+        },
+    ]
+    for c in test_cases:
+        try:
+            coll_name = str(uuid.uuid4())
+            hybr = truths[int(round(r.random(),0))]
+            ingestor = IngestCode(qdrant_client=client, async_qdrant_client=aclient, collection_name=coll_name, hybrid_search=hybr)
+            index = ingestor.ingest(files = c["files"], embedding_model="sentence-transformers/all-MiniLM-L6-v2", language=c["language"], return_type=c["return_type"], tokenizer=c["tokenizer"], chunk_size=c["chunk_size"], include_nodes=c["include_nodes"])
+            outcome = [isinstance(index, VectorStoreIndex), client.collection_exists(collection_name=coll_name)]
+        except Exception as e:
+            outcome = None
         client.delete_collection(collection_name=coll_name)
         assert outcome == c["expected"]
