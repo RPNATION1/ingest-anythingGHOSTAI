@@ -1,7 +1,7 @@
 try:
     from add_types import IngestionInput, Chunking, CodeChunking, CodeFiles
 except ModuleNotFoundError:
-    from .add_types import IngestionInput, Chunking, CodeChunking
+    from .add_types import IngestionInput, Chunking, CodeChunking, CodeFiles
 from qdrant_client import QdrantClient, AsyncQdrantClient
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, StorageContext
