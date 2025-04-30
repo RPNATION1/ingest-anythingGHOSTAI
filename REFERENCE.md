@@ -13,17 +13,20 @@ This module defines the data models for configuring text chunking and ingestion 
         *   Inherits from: `pydantic.BaseModel`
         *   Description: This class defines the configuration for different text chunking strategies and their associated parameters.
         *   Attributes:
-            *   `chunker` (`Literal["token", "sentence", "semantic", "sdpm", "late"]`): The chunking strategy to use.
-                *   `"token"`: Split by number of tokens.
-                *   `"sentence"`: Split by sentences.
-                *   `"semantic"`: Split by semantic meaning.
-                *   `"sdpm"`: Split using sentence distance probability matrix.
-                *   `"late"`: Delayed chunking strategy.
+            *   `chunker` (`Literal["token", "sentence", "semantic", "sdpm", "late", "slumber", "neural"]`): The chunking strategy to use.
+                *   `"token"`: Split by number of tokens
+                *   `"sentence"`: Split by sentences
+                *   `"semantic"`: Split by semantic similarity
+                *   `"sdpm"`: Split using sentence distance probability matrix
+                *   `"late"`: Delayed chunking strategy
+                *   `"slumber"`: LLM-based chunking using Gemini
+                *   `"neural"`: Finetuned-for-chunking BERT-based chunking
             *   `chunk_size` (`Optional[int]`): The target size for each chunk. Defaults to 512 if not specified.
             *   `chunk_overlap` (`Optional[int]`): The number of overlapping units between consecutive chunks. Defaults to 128 if not specified.
-            *   `similarity_threshold` (`Optional[float]`): The minimum similarity threshold for semantic chunking. Defaults to 0.7 if not specified.
+            *   `similarity_threshold` (`Optional[float]`): The minimum similarity threshold for semantic and SDPM chunking. Defaults to 0.7 if not specified.
             *   `min_characters_per_chunk` (`Optional[int]`): The minimum number of characters required for a valid chunk. Defaults to 24 if not specified.
             *   `min_sentences` (`Optional[int]`): The minimum number of sentences required for a valid chunk. Defaults to 1 if not specified.
+            *   `gemini_model` (`Optional[str]`): The Gemini model name to use for "slumber" chunking. Defaults to "gemini-2.0-flash" if not specified and "slumber" is chosen.
         *   Example:
 
             ```python
@@ -108,17 +111,18 @@ This module defines the `IngestAnything` and `IngestCode` classes, which handle 
                 >>> ingestor = IngestAnything(qdrant_client=client, collection_name="my_collection")
                 ```
 
-        *   `ingest(files_or_dir: str | List[str], embedding_model: str, chunker: Literal["token", "sentence", "semantic", "sdpm", "late"], tokenizer: Optional[str] = None, chunk_size: Optional[int] = None, chunk_overlap: Optional[int] = None, similarity_threshold: Optional[float] = None, min_characters_per_chunk: Optional[int] = None, min_sentences: Optional[int] = None) -> VectorStoreIndex`
+        *   `ingest(files_or_dir: str | List[str], embedding_model: str, chunker: Literal["token", "sentence", "semantic", "sdpm", "late", "neural", "slumber"], tokenizer: Optional[str] = None, chunk_size: Optional[int] = None, chunk_overlap: Optional[int] = None, similarity_threshold: Optional[float] = None, min_characters_per_chunk: Optional[int] = None, min_sentences: Optional[int] = None, gemini_model: Optional[str] = None) -> VectorStoreIndex`
             *   Parameters:
                 *   `files_or_dir` (`str | List[str]`): Path to file(s) or directory to ingest.
                 *   `embedding_model` (`str`): Name of the HuggingFace embedding model to use.
-                *   `chunker` (`Literal["token", "sentence", "semantic", "sdpm", "late"]`): Chunking strategy to use.
+                *   `chunker` (`Literal["token", "sentence", "semantic", "sdpm", "late", "neural", "slumber"]`): Chunking strategy to use.
                 *   `tokenizer` (`Optional[str]`, default=`None`): Tokenizer to use for chunking. Required for "token" and "sentence" chunking.
                 *   `chunk_size` (`Optional[int]`, default=`None`): Size of chunks.
                 *   `chunk_overlap` (`Optional[int]`, default=`None`): Number of overlapping tokens/sentences between chunks.
                 *   `similarity_threshold` (`Optional[float]`, default=`None`): Similarity threshold for semantic chunking.
                 *   `min_characters_per_chunk` (`Optional[int]`, default=`None`): Minimum number of characters per chunk.
                 *   `min_sentences` (`Optional[int]`, default=`None`): Minimum number of sentences per chunk.
+                *   `gemini_model` (`Optional[str]`, default=`None`): Name of Gemini model to use for chunking, if applicable.
             *   Returns:
                 *   `VectorStoreIndex`: Index containing the ingested and processed documents.
             *   Example:
