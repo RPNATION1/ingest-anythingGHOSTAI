@@ -15,29 +15,28 @@ reader = DoclingReader()
 
 class IngestAnything:
     """
-    A class for ingesting and storing documents in a Qdrant vector database with various chunking strategies.
+    A class for ingesting and indexing documents using Qdrant vector store with flexible chunking strategies.
 
-    This class provides functionality to ingest documents from files or directories, chunk them using
-    different strategies, and store them in a Qdrant vector database for later retrieval and search.
+    This class allows ingestion of documents from files or directories, supports multiple chunking strategies,
+    and stores the resulting chunks in a Qdrant vector store for efficient retrieval and search.
 
-    Attributes:
+    Parameters
+    ----------
+    qdrant_client : QdrantClient, optional
+        Synchronous Qdrant client instance.
+    async_qdrant_client : AsyncQdrantClient, optional
+        Asynchronous Qdrant client instance.
+    collection_name : str, optional
+        Name of the collection in Qdrant. Defaults to "ingest-anything-" + random UUID.
+    hybrid_search : bool, optional
+        Whether to enable hybrid search. Defaults to False.
+    fastembed_model : str, optional
+        Model to use for sparse embeddings in hybrid search. Defaults to "Qdrant/bm25".
 
-        qdrant_client : QdrantClient, optional
-            Synchronous Qdrant client instance
-        
-        async_qdrant_client : AsyncQdrantClient, optional
-            Asynchronous Qdrant client instance
-        
-        collection_name : str, default = "ingest-anything-" + random UUID
-            Name of the collection in Qdrant where documents will be stored
-        
-        hybrid_search : bool, default=False
-            Whether to enable hybrid search capabilities
-        
-        fastembed_model : str, default="Qdrant/bm25"
-            Model to use for sparse embeddings in hybrid search
-
-    At least one of qdrant_client or async_qdrant_client must be provided when initializing the class.
+    Raises
+    ------
+    ValueError
+        If neither sync nor async client is provided.
     """
     def __init__(self, qdrant_client: Optional[QdrantClient] = None, async_qdrant_client: Optional[AsyncQdrantClient] = None, collection_name: str = "ingest-anything-"+str(uuid.uuid4()), hybrid_search: bool = False, fastembed_model: str = "Qdrant/bm25"):
         if qdrant_client is None and async_qdrant_client is None:
@@ -47,44 +46,47 @@ class IngestAnything:
             self,
             files_or_dir: str | List[str],
             embedding_model: str,
-            chunker: Literal["token", "sentence", "semantic", "sdpm", "late"],
+            chunker: Literal["token", "sentence", "semantic", "sdpm", "late", "neural", "slumber"],
             tokenizer: Optional[str] = None,
             chunk_size: Optional[int] = None,
             chunk_overlap: Optional[int] = None,
             similarity_threshold: Optional[float] = None,
             min_characters_per_chunk: Optional[int] = None,
             min_sentences: Optional[int] = None,
+            gemini_model: Optional[str] = None
     ):
         """
-        Ingest documents from files or directories with specified chunking strategy.
+        Ingest documents from files or directories using the specified chunking strategy and create a searchable vector index.
 
         Parameters
         ----------
         files_or_dir : str or List[str]
-            Path to file(s) or directory to ingest
+            Path to file(s) or directory to ingest.
         embedding_model : str
-            Name of the HuggingFace embedding model to use
-        chunker : {"token", "sentence", "semantic", "sdpm", "late"}
-            Chunking strategy to use
+            Name of the HuggingFace embedding model to use.
+        chunker : Literal["token", "sentence", "semantic", "sdpm", "late", "neural", "slumber"]
+            Chunking strategy to use.
         tokenizer : str, optional
-            Tokenizer to use for chunking
+            Tokenizer to use for chunking.
         chunk_size : int, optional
-            Size of chunks
+            Size of chunks.
         chunk_overlap : int, optional
-            Number of overlapping tokens/sentences between chunks
+            Number of overlapping tokens/sentences between chunks.
         similarity_threshold : float, optional
-            Similarity threshold for semantic chunking
+            Similarity threshold for semantic chunking.
         min_characters_per_chunk : int, optional
-            Minimum number of characters per chunk
+            Minimum number of characters per chunk.
         min_sentences : int, optional
-            Minimum number of sentences per chunk
+            Minimum number of sentences per chunk.
+        gemini_model : str, optional
+            Name of Gemini model to use for chunking, if applicable.
 
         Returns
         -------
         VectorStoreIndex
-            Index containing the ingested and processed documents
+            Index containing the ingested and embedded document chunks.
         """
-        chunking = Chunking(chunker=chunker, chunk_size=chunk_size, chunk_overlap=chunk_overlap, similarity_threshold=similarity_threshold, min_characters_per_chunk=min_characters_per_chunk, min_sentences=min_sentences)
+        chunking = Chunking(chunker=chunker, chunk_size=chunk_size, chunk_overlap=chunk_overlap, similarity_threshold=similarity_threshold, min_characters_per_chunk=min_characters_per_chunk, min_sentences=min_sentences, gemini_model=gemini_model)
         ingestion_input = IngestionInput(files_or_dir=files_or_dir, chunking=chunking, tokenizer=tokenizer, embedding_model=embedding_model)
         docs = SimpleDirectoryReader(input_files=ingestion_input.files_or_dir, file_extractor={".pdf": reader}).load_data()
         text = "\n\n---\n\n".join([d.text for d in docs])

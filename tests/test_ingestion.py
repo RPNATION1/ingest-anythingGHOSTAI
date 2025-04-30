@@ -10,6 +10,7 @@ load_dotenv()
 client = QdrantClient(api_key=os.getenv("qdrant_api_key"), url=os.getenv("qdrant_url"))
 aclient = AsyncQdrantClient(api_key=os.getenv("qdrant_api_key"), url=os.getenv("qdrant_url"))
 truths = {0: True, 1: False}
+os.environ["GEMINI_API_KEY"] = os.getenv("gemini_api_key")
 
 def test_ingestion():
     test_cases = [
@@ -23,6 +24,7 @@ def test_ingestion():
             "files_or_dir": "tests/data",
             "tokenizer": "gpt2",
             "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+            "gemini_model": None,
             "expected": [True, True],
         },
         {
@@ -35,6 +37,7 @@ def test_ingestion():
             "files_or_dir": ['tests/data/test.docx', 'tests/data/test0.png', 'tests/data/test1.csv', 'tests/data/test2.json', 'tests/data/test3.md', 'tests/data/test4.xml', 'tests/data/test5.zip'],
             "tokenizer": "gpt2",
             "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+            "gemini_model": None,
             "expected": [True, True],
         },
         {
@@ -47,6 +50,7 @@ def test_ingestion():
             "files_or_dir": ['tests/data/test.docx', 'tests/data/test0.png', 'tests/data/test1.csv', 'tests/data/test2.json', 'tests/data/test3.md', 'tests/data/test4.xml', 'tests/data/test5.zip'],
             "tokenizer": "gpt2",
             "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+            "gemini_model": None,
             "expected": [True, True],
         },
         {
@@ -59,6 +63,7 @@ def test_ingestion():
             "files_or_dir": ['tests/data/test.docx', 'tests/data/test0.png', 'tests/data/test1.csv', 'tests/data/test2.json', 'tests/data/test3.md', 'tests/data/test4.xml', 'tests/data/test5.zip'],
             "tokenizer": "gpt2",
             "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+            "gemini_model": None,
             "expected": [True, True],
         },
         {
@@ -71,6 +76,33 @@ def test_ingestion():
             "files_or_dir": ['tests/data/test.docx', 'tests/data/test0.png', 'tests/data/test1.csv', 'tests/data/test2.json', 'tests/data/test3.md', 'tests/data/test4.xml', 'tests/data/test5.zip'],
             "tokenizer": "gpt2",
             "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+            "gemini_model": None,
+            "expected": [True, True],
+        },
+        {
+            "chunker": "slumber",
+            "chunk_size": None,
+            "chunk_overlap": None,
+            "similarity_threshold": None,
+            "min_characters_per_chunk": None,
+            "min_sentences": None,
+            "files_or_dir": ['tests/data/test.docx', 'tests/data/test0.png', 'tests/data/test1.csv', 'tests/data/test2.json', 'tests/data/test3.md', 'tests/data/test4.xml', 'tests/data/test5.zip'],
+            "tokenizer": "gpt2",
+            "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+            "gemini_model": "gemini-2.0-flash",
+            "expected": [True, True],
+        },
+        {
+            "chunker": "neural",
+            "chunk_size": None,
+            "chunk_overlap": None,
+            "similarity_threshold": None,
+            "min_characters_per_chunk": None,
+            "min_sentences": None,
+            "files_or_dir": ['tests/data/test.docx', 'tests/data/test0.png', 'tests/data/test1.csv', 'tests/data/test2.json', 'tests/data/test3.md', 'tests/data/test4.xml', 'tests/data/test5.zip'],
+            "tokenizer": "gpt2",
+            "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+            "gemini_model": None,
             "expected": [True, True],
         },
     ]
@@ -79,7 +111,7 @@ def test_ingestion():
             coll_name = str(uuid.uuid4())
             hybr = truths[int(round(r.random(),0))]
             ingestor = IngestAnything(qdrant_client=client, async_qdrant_client=aclient, collection_name=coll_name, hybrid_search=hybr)
-            index = ingestor.ingest(chunker=c["chunker"], chunk_size=c["chunk_size"], chunk_overlap=c["chunk_overlap"], similarity_threshold = c["similarity_threshold"], min_characters_per_chunk=c["min_characters_per_chunk"], min_sentences=c["min_sentences"],files_or_dir=c["files_or_dir"], tokenizer=c["tokenizer"], embedding_model=c["embedding_model"])
+            index = ingestor.ingest(chunker=c["chunker"], chunk_size=c["chunk_size"], chunk_overlap=c["chunk_overlap"], similarity_threshold = c["similarity_threshold"], min_characters_per_chunk=c["min_characters_per_chunk"], min_sentences=c["min_sentences"],files_or_dir=c["files_or_dir"], tokenizer=c["tokenizer"], embedding_model=c["embedding_model"], gemini_model = c["gemini_model"])
             outcome = [isinstance(index, VectorStoreIndex), client.collection_exists(collection_name=coll_name)]
         except Exception as e:
             outcome = [None, e.__str__()]

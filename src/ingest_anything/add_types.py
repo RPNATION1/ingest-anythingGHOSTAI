@@ -2,47 +2,56 @@ from pydantic import BaseModel, model_validator
 from typing import List, Literal, Optional
 import pathlib
 from typing_extensions import Self
-from chonkie import SentenceTransformerEmbeddings, SemanticChunker, SDPMChunker, TokenChunker, SentenceChunker, LateChunker, CodeChunker
+from chonkie import SentenceTransformerEmbeddings, SemanticChunker, SDPMChunker, TokenChunker, SentenceChunker, LateChunker, CodeChunker, SlumberChunker, NeuralChunker
+from chonkie.genie import GeminiGenie
 from tokenizers import Tokenizer
 from pdfitdown.pdfconversion import Converter
 
 pdf_converter = Converter()
 
 class Chunking(BaseModel):
-    """A Pydantic model for configuring text chunking parameters.
+    """
+    A Pydantic model for configuring text chunking parameters.
 
     This class defines the configuration for different text chunking strategies and their associated parameters.
 
     Attributes:
-        chunker (Literal["token", "sentence", "semantic", "sdpm", "late"]): 
+        chunker (Literal["token", "sentence", "semantic", "sdpm", "late", "slumber", "neural"]):
             The chunking strategy to use. Options are:
             - "token": Split by number of tokens
             - "sentence": Split by sentences
-            - "semantic": Split by semantic meaning
+            - "semantic": Split by semantic similarity
             - "sdpm": Split using sentence distance probability matrix
             - "late": Delayed chunking strategy
-        
-        chunk_size (Optional[int]): 
+            - "slumber": LLM-based chunking using Gemini
+            - "neural": Finetuned-for-chunking BERT-based chunking
+
+        chunk_size (Optional[int]):
             The target size for each chunk. Defaults to 512 if not specified.
-        
-        chunk_overlap (Optional[int]): 
+
+        chunk_overlap (Optional[int]):
             The number of overlapping units between consecutive chunks. Defaults to 128 if not specified.
-        
-        similarity_threshold (Optional[float]): 
-            The minimum similarity threshold for semantic chunking. Defaults to 0.7 if not specified.
-        
-        min_characters_per_chunk (Optional[int]): 
+
+        similarity_threshold (Optional[float]):
+            The minimum similarity threshold for semantic and SDPM chunking. Defaults to 0.7 if not specified.
+
+        min_characters_per_chunk (Optional[int]):
             The minimum number of characters required for a valid chunk. Defaults to 24 if not specified.
-        
-        min_sentences (Optional[int]): 
+
+        min_sentences (Optional[int]):
             The minimum number of sentences required for a valid chunk. Defaults to 1 if not specified.
+
+        gemini_model (Optional[str]):
+            The Gemini model name to use for "slumber" chunking. Defaults to "gemini-2.0-flash" if not specified and "slumber" is chosen.
     """
-    chunker: Literal["token", "sentence", "semantic", "sdpm", "late"]
+    chunker: Literal["token", "sentence", "semantic", "sdpm", "late", "slumber", "neural"]
     chunk_size: Optional[int] = None
     chunk_overlap: Optional[int] = None
     similarity_threshold: Optional[float] = None
     min_characters_per_chunk: Optional[int] = None
     min_sentences: Optional[int] = None
+    gemini_model: Optional[str] = None
+
     @model_validator(mode="after")
     def validate_chunking(self) -> Self:
         if self.chunk_size is None:
@@ -55,6 +64,8 @@ class Chunking(BaseModel):
             self.min_characters_per_chunk = 24
         if self.min_sentences is None:
             self.min_sentences = 1
+        if self.chunker == "slumber" and self.gemini_model is None:
+            self.gemini_model = "gemini-2.0-flash"
         return self
 
 class CodeFiles(BaseModel):
@@ -164,4 +175,9 @@ class IngestionInput(BaseModel):
             self.chunking = SDPMChunker(embedding_model=self.embedding_model, chunk_size=self.chunking.chunk_size, threshold=self.chunking.similarity_threshold, min_sentences=self.chunking.min_sentences)
         elif self.chunking.chunker == "semantic":
             self.chunking = SemanticChunker(embedding_model=self.embedding_model, threshold=self.chunking.similarity_threshold, min_sentences=self.chunking.min_sentences, chunk_size=self.chunking.chunk_size)
+        elif self.chunking.chunker == "slumber":
+            genie = GeminiGenie(model=self.chunking.gemini_model)
+            self.chunking = SlumberChunker(genie=genie, tokenizer_or_token_counter=self.tokenizer, chunk_size=self.chunking.chunk_size, min_characters_per_chunk=self.chunking.min_characters_per_chunk)
+        elif self.chunking.chunker == "neural":
+            self.chunking = NeuralChunker(min_characters_per_chunk=self.chunking.min_characters_per_chunk)
         return self
