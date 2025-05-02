@@ -1,17 +1,16 @@
 try:
     from add_types import IngestionInput, Chunking, CodeChunking, CodeFiles
+    from embeddings import ChonkieAutoEmbedding
 except ModuleNotFoundError:
     from .add_types import IngestionInput, Chunking, CodeChunking, CodeFiles
-from qdrant_client import QdrantClient, AsyncQdrantClient
-from llama_index.vector_stores.qdrant import QdrantVectorStore
+    from .embeddings import ChonkieAutoEmbedding
 from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, StorageContext
+from llama_index.core.readers.base import BaseReader
+from llama_index.core.vector_stores.types import BasePydanticVectorStore
 from llama_index.readers.docling import DoclingReader
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core.schema import TextNode
 from typing import Optional, Literal, List
 import uuid
-
-reader = DoclingReader()
 
 class IngestAnything:
     """
@@ -38,10 +37,11 @@ class IngestAnything:
     ValueError
         If neither sync nor async client is provided.
     """
-    def __init__(self, qdrant_client: Optional[QdrantClient] = None, async_qdrant_client: Optional[AsyncQdrantClient] = None, collection_name: str = "ingest-anything-"+str(uuid.uuid4()), hybrid_search: bool = False, fastembed_model: str = "Qdrant/bm25"):
-        if qdrant_client is None and async_qdrant_client is None:
-            raise ValueError("Either sync or async client (or both) must be provided")
-        self.vector_store = QdrantVectorStore(collection_name=collection_name, client = qdrant_client, aclient= async_qdrant_client, enable_hybrid=hybrid_search, fastembed_sparse_model=fastembed_model)
+    def __init__(self, vector_store: BasePydanticVectorStore, reader: Optional[BaseReader] = None):
+        self.vector_store = vector_store
+        if reader is None:
+            reader = DoclingReader()
+        self.reader = reader
     def ingest(
             self,
             files_or_dir: str | List[str],
@@ -88,12 +88,12 @@ class IngestAnything:
         """
         chunking = Chunking(chunker=chunker, chunk_size=chunk_size, chunk_overlap=chunk_overlap, similarity_threshold=similarity_threshold, min_characters_per_chunk=min_characters_per_chunk, min_sentences=min_sentences, gemini_model=gemini_model)
         ingestion_input = IngestionInput(files_or_dir=files_or_dir, chunking=chunking, tokenizer=tokenizer, embedding_model=embedding_model)
-        docs = SimpleDirectoryReader(input_files=ingestion_input.files_or_dir, file_extractor={".pdf": reader}).load_data()
+        docs = SimpleDirectoryReader(input_files=ingestion_input.files_or_dir, file_extractor={".pdf": self.reader}).load_data()
         text = "\n\n---\n\n".join([d.text for d in docs])
         chunks = ingestion_input.chunking.chunk(text)
         nodes = [TextNode(text=c.text, id_=str(uuid.uuid4())) for c in chunks]
         storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
-        index = VectorStoreIndex(nodes=nodes, embed_model=HuggingFaceEmbedding(model_name=embedding_model), show_progress=True, storage_context=storage_context)
+        index = VectorStoreIndex(nodes=nodes, embed_model=ChonkieAutoEmbedding(model_name=embedding_model), show_progress=True, storage_context=storage_context)
         return index
     
 class IngestCode:
@@ -127,10 +127,8 @@ class IngestCode:
     ValueError
         If neither sync nor async client is provided
     """
-    def __init__(self, qdrant_client: Optional[QdrantClient] = None, async_qdrant_client: Optional[AsyncQdrantClient] = None, collection_name: str = "ingest-anything-"+str(uuid.uuid4()), hybrid_search: bool = False, fastembed_model: str = "Qdrant/bm25"):
-        if qdrant_client is None and async_qdrant_client is None:
-            raise ValueError("Either sync or async client (or both) must be provided")
-        self.vector_store = QdrantVectorStore(collection_name=collection_name, client = qdrant_client, aclient= async_qdrant_client, enable_hybrid=hybrid_search, fastembed_sparse_model=fastembed_model)
+    def __init__(self, vector_store: BasePydanticVectorStore):
+        self.vector_store = vector_store
     def ingest(
             self,
             files: List[str],
@@ -165,7 +163,5 @@ class IngestCode:
         chunks = chunking.chunker.chunk(text)
         nodes = [TextNode(text=c.text, id_=str(uuid.uuid4())) for c in chunks]
         storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
-        index = VectorStoreIndex(nodes=nodes, embed_model=HuggingFaceEmbedding(model_name=embedding_model), show_progress=True, storage_context=storage_context)
+        index = VectorStoreIndex(nodes=nodes, embed_model=ChonkieAutoEmbedding(model_name=embedding_model), show_progress=True, storage_context=storage_context)
         return index
-        
-        

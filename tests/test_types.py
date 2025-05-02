@@ -1,4 +1,4 @@
-from add_types import IngestionInput, Chunking, Tokenizer, TokenChunker, SentenceTransformerEmbeddings, CodeChunking, CodeChunker, CodeFiles
+from add_types import IngestionInput, Chunking, Tokenizer, TokenChunker, BaseEmbeddings, CodeChunking, CodeChunker, CodeFiles
 import os
 from pydantic import ValidationError
 import pathlib
@@ -182,7 +182,7 @@ def test_ingestion_input():
         except ValidationError:
             outcome = None
         else:
-            outcome = [Counter(ingestion.files_or_dir), isinstance(ingestion.chunking, TokenChunker), isinstance(ingestion.tokenizer, Tokenizer), isinstance(ingestion.embedding_model, SentenceTransformerEmbeddings)]
+            outcome = [Counter(ingestion.files_or_dir), isinstance(ingestion.chunking, TokenChunker), isinstance(ingestion.tokenizer, Tokenizer), isinstance(ingestion.embedding_model, BaseEmbeddings)]
         for f in ['tests/data/test.pdf', 'tests/data/test0.pdf', 'tests/data/test1.pdf', 'tests/data/test2.pdf', 'tests/data/test3.pdf', 'tests/data/test4.pdf', 'tests/data/test5.pdf']:
             if pathlib.Path(f).is_file():
                 os.remove(f)

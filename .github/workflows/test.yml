@@ -39,5 +39,8 @@ jobs:
         env:
           qdrant_api_key: ${{ secrets.QDRANT_API_KEY }}
           qdrant_url: ${{ secrets.QDRANT_URL }}
-          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          milvus_uri: ${{ secrets.MILVUS_URI }}
+          milvus_token: ${{ secrets.MILVUS_TOKEN }}
+          weaviate_cluster_url: ${{ secrets.WEAVIATE_CLUSTER_URL }}
+          weaviate_admin_key: ${{ secrets.WEAVIATE_ADMIN_KEY }}
         run: hatch run test
