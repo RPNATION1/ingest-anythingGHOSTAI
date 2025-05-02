@@ -2,10 +2,14 @@ from pydantic import BaseModel, model_validator
 from typing import List, Literal, Optional
 import pathlib
 from typing_extensions import Self
-from chonkie import SentenceTransformerEmbeddings, SemanticChunker, SDPMChunker, TokenChunker, SentenceChunker, LateChunker, CodeChunker, SlumberChunker, NeuralChunker
+from chonkie import BaseEmbeddings, SemanticChunker, SDPMChunker, TokenChunker, SentenceChunker, LateChunker, CodeChunker, SlumberChunker, NeuralChunker
 from chonkie.genie import GeminiGenie
 from tokenizers import Tokenizer
 from pdfitdown.pdfconversion import Converter
+try:
+    from embeddings import AutoEmbeddings
+except ModuleNotFoundError:
+    from .embeddings import AutoEmbeddings
 
 pdf_converter = Converter()
 
@@ -156,9 +160,13 @@ class IngestionInput(BaseModel):
     def validate_ingestion(self) -> Self:
         if isinstance(self.files_or_dir, str):
             self.files_or_dir = pdf_converter.convert_directory(self.files_or_dir)
+            if len(self.files_or_dir) == 0:
+                raise ValueError("The directory or files input you provided was not convertible to PDF at all")
         elif isinstance(self.files_or_dir, list):
             self.files_or_dir = pdf_converter.multiple_convert(file_paths=self.files_or_dir)
-        self.embedding_model = SentenceTransformerEmbeddings(model=self.embedding_model)
+            if len(self.files_or_dir) == 0:
+                raise ValueError("The directory or files input you provided was not convertible to PDF at all")
+        self.embedding_model = AutoEmbeddings.get_embeddings(model=self.embedding_model)
         if self.chunking.chunker == "token":
             if self.tokenizer is None:
                 raise ValueError(f"Tokenizer cannot be None if {self.chunking.chunker} chunking approach is chosen")
