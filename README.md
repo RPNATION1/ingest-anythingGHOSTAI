@@ -47,12 +47,13 @@ And is available in your python scripts:
 - You can **initialize the interface for text-based files** like this:
 
 ```python
-from ingest_anything.ingestion import IngestAnything, QdrantClient, AsyncQdrantClient
+from qdrant_client import QdrantClient, AsyncQdrantClient
+from llama_index.vector_stores.qdrant import QdrantVectorStore
 
-coll_name = "Flowers"
-client = QdrantClient("http://localhost:6333")
-aclient = AsyncQdrantClient("http://localhost:6333")
-ingestor = IngestAnything(qdrant_client=client, async_qdrant_client=aclient, collection_name=coll_name, hybrid_search=True)
+client_qdrant = QdrantClient("http://localhost:6333")
+aclient_qdrant = AsyncQdrantClient("http://localhost:6333")
+vector_store_qdrant = QdrantVectorStore(collection_name="Test",client=client_qdrant, aclient=aclient_qdrant)
+ingestor = IngestAnything(vector_store=vector_store_qdrant)
 ```
 
 - And **ingest** your files:
@@ -67,19 +68,31 @@ ingestor.ingest(chunker="token", files_or_dir="tests/data", tokenizer="gpt2", em
 - You can also **initialize the interface for code files** 
 
 ```python
-from ingest_anything.ingestion import IngestCode, QdrantClient, AsyncQdrantClient
+import os
+from dotenv import load_dotenv
+import weaviate
+from llama_index.vector_stores.weaviate import WeaviateVectorStore
 
-coll_name = "go-code"
-client = QdrantClient("http://localhost:6333")
-aclient = AsyncQdrantClient("http://localhost:6333")
-ingestor = IngestCode(qdrant_client=client, async_qdrant_client=aclient, collection_name=coll_name, hybrid_search=True)
+load_dotenv()
+
+cluster_url = os.getenv("weaviate_cluster_url")
+api_key = os.getenv("weaviate_admin_key")
+client_weaviate = weaviate.connect_to_weaviate_cloud(
+    cluster_url=cluster_url,
+    auth_credentials=weaviate.auth.AuthApiKey(api_key),
+)
+vector_store_weaviate = WeaviateVectorStore(
+    weaviate_client=client_weaviate, index_name="Test"
+)
+
+ingestor = IngestCode(vector_store=vector_store_qdrant)
 ```
 
 - And then **ingest your code files**:
 
 ```python
-# with a list of files
-ingestor.ingest(files=["tests/code/acronym.go", "tests/code/animal_magic.go", "tests/code/atbash_cipher_test.go"], embedding_model="sentence-transformers/all-MiniLM-L6-v2", language="go")
+os.environ["OPENAI_API_KEY"] = "YOUR_API_KEY"
+ingestor.ingest(files=["tests/code/acronym.go", "tests/code/animal_magic.go", "tests/code/atbash_cipher_test.go"], embedding_model="text-embedding-3-small", language="go")
 ```
 
 You can find a complete reference for the package in [REFERENCE.md](https://github.com/AstraBert/ingest-anything/tree/main/REFERENCE.md)

@@ -14,28 +14,14 @@ import uuid
 
 class IngestAnything:
     """
-    A class for ingesting and indexing documents using Qdrant vector store with flexible chunking strategies.
-
-    This class allows ingestion of documents from files or directories, supports multiple chunking strategies,
-    and stores the resulting chunks in a Qdrant vector store for efficient retrieval and search.
+    IngestAnything provides a high-level interface for ingesting documents, chunking them using various strategies, and indexing them into a vector store for semantic search.
 
     Parameters
     ----------
-    qdrant_client : QdrantClient, optional
-        Synchronous Qdrant client instance.
-    async_qdrant_client : AsyncQdrantClient, optional
-        Asynchronous Qdrant client instance.
-    collection_name : str, optional
-        Name of the collection in Qdrant. Defaults to "ingest-anything-" + random UUID.
-    hybrid_search : bool, optional
-        Whether to enable hybrid search. Defaults to False.
-    fastembed_model : str, optional
-        Model to use for sparse embeddings in hybrid search. Defaults to "Qdrant/bm25".
-
-    Raises
-    ------
-    ValueError
-        If neither sync nor async client is provided.
+    vector_store : BasePydanticVectorStore
+        The vector store instance where document embeddings will be stored.
+    reader : Optional[BaseReader], default=None
+        Optional custom document reader. If not provided, a default DoclingReader is used.
     """
     def __init__(self, vector_store: BasePydanticVectorStore, reader: Optional[BaseReader] = None):
         self.vector_store = vector_store
@@ -63,7 +49,7 @@ class IngestAnything:
         files_or_dir : str or List[str]
             Path to file(s) or directory to ingest.
         embedding_model : str
-            Name of the HuggingFace embedding model to use.
+            Name of the embedding model to use: supports OpenAI, HuggingFace, Cohere, Jina AI and Model2Vec
         chunker : Literal["token", "sentence", "semantic", "sdpm", "late", "neural", "slumber"]
             Chunking strategy to use.
         tokenizer : str, optional
@@ -98,34 +84,13 @@ class IngestAnything:
     
 class IngestCode:
     """
-    A class for ingesting and indexing code files using Qdrant vector store.
+    IngestCode is a class for ingesting code files, chunking them, embedding the chunks, and storing them in a vector store for efficient search and retrieval.
 
-    This class handles the ingestion of code files, chunking them into smaller pieces,
-    and storing them in a Qdrant vector store for later retrieval and search.
-
-    Parameters
+    Attributes
     ----------
-    qdrant_client : QdrantClient, optional
-        Synchronous Qdrant client instance
-    async_qdrant_client : AsyncQdrantClient, optional
-        Asynchronous Qdrant client instance
-    collection_name : str, optional
-        Name of the collection in Qdrant. Defaults to "ingest-anything-" + random UUID
-    hybrid_search : bool, optional
-        Whether to enable hybrid search. Defaults to False
-    fastembed_model : str, optional
-        Model to use for sparse embeddings in hybrid search. Defaults to "Qdrant/bm25"
 
-    Methods
-    -------
-    ingest(files, embedding_model, language, return_type=None, tokenizer=None, 
-           chunk_size=None, include_nodes=None)
-        Ingest code files and create a searchable vector index.
-
-    Raises
-    ------
-    ValueError
-        If neither sync nor async client is provided
+    vector_store : BasePydanticVectorStore
+        The vector store instance where embedded code chunks will be stored.
     """
     def __init__(self, vector_store: BasePydanticVectorStore):
         self.vector_store = vector_store

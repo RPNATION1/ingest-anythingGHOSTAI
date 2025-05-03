@@ -71,10 +71,10 @@ This module defines the data models for configuring text chunking and ingestion 
         *   Inherits from: `pydantic.BaseModel`
         *   Description: This class handles different types of document inputs and chunking strategies, converting files and setting up appropriate chunking mechanisms based on the specified configuration.
         *   Attributes:
-            *   `files_or_dir` (`Union[str, List[str]]`): Path to directory containing files or list of file paths to process.
-            *   `chunking` (`Chunking`): Configuration for the chunking strategy to be used.
-            *   `tokenizer` (`Optional[str]`, default=`None`): Name or path of the tokenizer model to be used (required for 'token' and 'sentence' chunking).
-            *   `embedding_model` (`str`): Name or path of the embedding model to be used.
+            *   `files_or_dir` (`Union[str, List[str]]`): Path to directory containing files or list of file paths to process
+            *   `chunking` (`Chunking`): Configuration for the chunking strategy to be used
+            *   `tokenizer` (`Optional[str]`, default=`None`): Name or path of the tokenizer model to be used (required for 'token' and 'sentence' chunking)
+            *   `embedding_model` (`str`): Name or path of the embedding model to be used
         *   Example:
 
             ```python
@@ -93,45 +93,43 @@ This module defines the `IngestAnything` and `IngestCode` classes, which handle 
 
 *   **Classes**
 
-    *   `IngestAnything`: A class for ingesting and storing documents in a Qdrant vector database with various chunking strategies.
+    *   `IngestAnything`: Provides a high-level interface for ingesting documents, chunking them using various strategies, and indexing them into a vector store for semantic search.
 
-        *   `__init__(qdrant_client: Optional[QdrantClient] = None, async_qdrant_client: Optional[AsyncQdrantClient] = None, collection_name: str = "ingest-anything-" + random UUID, hybrid_search: bool = False, fastembed_model: str = "Qdrant/bm25")`
+        *   `__init__(vector_store: BasePydanticVectorStore, reader: Optional[BaseReader] = None)`
             *   Parameters:
-                *   `qdrant_client` (`Optional[QdrantClient]`, default=`None`): Synchronous Qdrant client instance. At least one of `qdrant_client` or `async_qdrant_client` must be provided.
-                *   `async_qdrant_client` (`Optional[AsyncQdrantClient]`, default=`None`): Asynchronous Qdrant client instance.
-                *   `collection_name` (`str`, default="ingest-anything-" + random UUID): Name of the collection in Qdrant where documents will be stored.
-                *   `hybrid_search` (`bool`, default=`False`): Whether to enable hybrid search capabilities.
-                *   `fastembed_model` (`str`, default="Qdrant/bm25"): Model to use for sparse embeddings in hybrid search.
+                *   `vector_store` (`BasePydanticVectorStore`): The vector store instance where document embeddings will be stored.
+                *   `reader` (`Optional[BaseReader]`, default=`None`): Optional custom document reader. If not provided, a default DoclingReader is used.
             *   Example:
 
                 ```python
-                >>> from qdrant_client import QdrantClient
+                >>> from llama_index.vector_stores.qdrant import QdrantVectorStore
                 >>> from ingest_anything.ingestion import IngestAnything
-                >>> client = QdrantClient(":memory:")
-                >>> ingestor = IngestAnything(qdrant_client=client, collection_name="my_collection")
+                >>> vector_store = QdrantVectorStore(client=client, collection_name="my_collection")
+                >>> ingestor = IngestAnything(vector_store=vector_store)
                 ```
 
         *   `ingest(files_or_dir: str | List[str], embedding_model: str, chunker: Literal["token", "sentence", "semantic", "sdpm", "late", "neural", "slumber"], tokenizer: Optional[str] = None, chunk_size: Optional[int] = None, chunk_overlap: Optional[int] = None, similarity_threshold: Optional[float] = None, min_characters_per_chunk: Optional[int] = None, min_sentences: Optional[int] = None, gemini_model: Optional[str] = None) -> VectorStoreIndex`
+            *   Description: Ingest documents from files or directories using the specified chunking strategy and create a searchable vector index.
             *   Parameters:
-                *   `files_or_dir` (`str | List[str]`): Path to file(s) or directory to ingest.
-                *   `embedding_model` (`str`): Name of the HuggingFace embedding model to use.
+                *   `files_or_dir` (`str` or `List[str]`): Path to file(s) or directory to ingest.
+                *   `embedding_model` (`str`): Name of the embedding model to use: supports OpenAI, HuggingFace, Cohere, Jina AI and Model2Vec
                 *   `chunker` (`Literal["token", "sentence", "semantic", "sdpm", "late", "neural", "slumber"]`): Chunking strategy to use.
-                *   `tokenizer` (`Optional[str]`, default=`None`): Tokenizer to use for chunking. Required for "token" and "sentence" chunking.
-                *   `chunk_size` (`Optional[int]`, default=`None`): Size of chunks.
-                *   `chunk_overlap` (`Optional[int]`, default=`None`): Number of overlapping tokens/sentences between chunks.
-                *   `similarity_threshold` (`Optional[float]`, default=`None`): Similarity threshold for semantic chunking.
-                *   `min_characters_per_chunk` (`Optional[int]`, default=`None`): Minimum number of characters per chunk.
-                *   `min_sentences` (`Optional[int]`, default=`None`): Minimum number of sentences per chunk.
-                *   `gemini_model` (`Optional[str]`, default=`None`): Name of Gemini model to use for chunking, if applicable.
+                *   `tokenizer` (`str`, optional): Tokenizer to use for chunking.
+                *   `chunk_size` (`int`, optional): Size of chunks.
+                *   `chunk_overlap` (`int`, optional): Number of overlapping tokens/sentences between chunks.
+                *   `similarity_threshold` (`float`, optional): Similarity threshold for semantic chunking.
+                *   `min_characters_per_chunk` (`int`, optional): Minimum number of characters per chunk.
+                *   `min_sentences` (`int`, optional): Minimum number of sentences per chunk.
+                *   `gemini_model` (`str`, optional): Name of Gemini model to use for chunking, if applicable.
             *   Returns:
-                *   `VectorStoreIndex`: Index containing the ingested and processed documents.
+                *   `VectorStoreIndex`: Index containing the ingested and embedded document chunks.
             *   Example:
 
                 ```python
-                >>> from qdrant_client import QdrantClient
+                >>> from llama_index.vector_stores.qdrant import QdrantVectorStore
                 >>> from ingest_anything.ingestion import IngestAnything
-                >>> client = QdrantClient(":memory:")
-                >>> ingestor = IngestAnything(qdrant_client=client, collection_name="my_collection")
+                >>> vector_store = QdrantVectorStore(client=client, collection_name="my_collection")
+                >>> ingestor = IngestAnything(vector_store=vector_store)
                 >>> index = ingestor.ingest(
                 ...     files_or_dir="path/to/documents",
                 ...     embedding_model="sentence-transformers/all-mpnet-base-v2",
@@ -140,24 +138,21 @@ This module defines the `IngestAnything` and `IngestCode` classes, which handle 
                 ... )
                 ```
 
-    *   `IngestCode`: A class for ingesting and indexing code files using Qdrant vector store.
+    *   `IngestCode`:  is a class for ingesting code files, chunking them, embedding the chunks, and storing them in a vector store for efficient search and retrieval.
 
-        *   `__init__(qdrant_client: Optional[QdrantClient] = None, async_qdrant_client: Optional[AsyncQdrantClient] = None, collection_name: str = "ingest-anything-" + random UUID, hybrid_search: bool = False, fastembed_model: str = "Qdrant/bm25")`
+        *   `__init__(vector_store: BasePydanticVectorStore)`
             *   Parameters:
-                *   `qdrant_client` (`Optional[QdrantClient]`, default=`None`): Synchronous Qdrant client instance
-                *   `async_qdrant_client` (`Optional[AsyncQdrantClient]`, default=`None`): Asynchronous Qdrant client instance
-                *   `collection_name` (`str`, default="ingest-anything-" + random UUID): Name of the collection in Qdrant.
-                *   `hybrid_search` (`bool`, default=`False`): Whether to enable hybrid search.
-                *   `fastembed_model` (`str`, default="Qdrant/bm25"): Model to use for sparse embeddings in hybrid search.
+                *   `vector_store` (`BasePydanticVectorStore`): The vector store instance where embedded code chunks will be stored.
             *   Example:
                 ```python
-                >>> from qdrant_client import QdrantClient
+                >>> from llama_index.vector_stores.qdrant import QdrantVectorStore
                 >>> from ingest_anything.ingestion import IngestCode
-                >>> client = QdrantClient(":memory:")
-                >>> ingestor = IngestCode(qdrant_client=client, collection_name="my_code_collection")
+                >>> vector_store = QdrantVectorStore(client=client, collection_name="my_code_collection")
+                >>> ingestor = IngestCode(vector_store=vector_store)
                 ```
 
         *   `ingest(files: List[str], embedding_model: str, language: str, return_type: Optional[Literal["chunks", "texts"]] = None, tokenizer: Optional[str] = None, chunk_size: Optional[int] = None, include_nodes: Optional[bool] = None)`
+            *   Description: Ingest code files and create a searchable vector index.
             *   Parameters:
                 *   `files` (`List[str]`): List of file paths to ingest
                 *   `embedding_model` (`str`): Name of the HuggingFace embedding model to use
@@ -170,10 +165,10 @@ This module defines the `IngestAnything` and `IngestCode` classes, which handle 
                 *   `VectorStoreIndex`: Index containing the ingested and embedded code chunks
             *   Example:
                 ```python
-                >>> from qdrant_client import QdrantClient
+                >>> from llama_index.vector_stores.qdrant import QdrantVectorStore
                 >>> from ingest_anything.ingestion import IngestCode
-                >>> client = QdrantClient(":memory:")
-                >>> ingestor = IngestCode(qdrant_client=client, collection_name="my_code_collection")
+                >>> vector_store = QdrantVectorStore(client=client, collection_name="my_code_collection")
+                >>> ingestor = IngestCode(vector_store=vector_store)
                 >>> index = ingestor.ingest(
                 ...     files=["file1.py", "file2.py"],
                 ...     embedding_model="sentence-transformers/all-mpnet-base-v2",
