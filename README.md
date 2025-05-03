@@ -7,6 +7,7 @@
     <img src="https://raw.githubusercontent.com/AstraBert/ingest-anything/main/logo.png" alt="Ingest-Anything Logo">
 </div>
 
+[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/qxzFz9VE)
 
 **`ingest-anything`** is a python package aimed at providing a smooth solution to ingest non-PDF files into vector databases, given that most ingestion pipelines are focused on PDF/markdown files. Leveraging [chonkie](https://docs.chonkie.ai/getting-started/introduction), [PdfItDown](https://github.com/AstraBert/PdfItDown), [Llamaindex](https://www.llamaindex.ai), [Sentence Transformers](https://sbert.net) embeddings and [Qdrant](https://qdrant.tech), `ingest-anything` gives you a fully-automated pipeline for document ingestion within few lines of code!
 
