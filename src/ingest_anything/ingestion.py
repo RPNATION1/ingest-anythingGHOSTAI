@@ -12,6 +12,7 @@ from llama_index.core.schema import TextNode
 from typing import Optional, Literal, List
 import uuid
 
+
 class IngestAnything:
     """
     IngestAnything provides a high-level interface for ingesting documents, chunking them using various strategies, and indexing them into a vector store for semantic search.
@@ -23,23 +24,29 @@ class IngestAnything:
     reader : Optional[BaseReader], default=None
         Optional custom document reader. If not provided, a default DoclingReader is used.
     """
-    def __init__(self, vector_store: BasePydanticVectorStore, reader: Optional[BaseReader] = None):
+
+    def __init__(
+        self, vector_store: BasePydanticVectorStore, reader: Optional[BaseReader] = None
+    ):
         self.vector_store = vector_store
         if reader is None:
             reader = DoclingReader()
         self.reader = reader
+
     def ingest(
-            self,
-            files_or_dir: str | List[str],
-            embedding_model: str,
-            chunker: Literal["token", "sentence", "semantic", "sdpm", "late", "neural", "slumber"],
-            tokenizer: Optional[str] = None,
-            chunk_size: Optional[int] = None,
-            chunk_overlap: Optional[int] = None,
-            similarity_threshold: Optional[float] = None,
-            min_characters_per_chunk: Optional[int] = None,
-            min_sentences: Optional[int] = None,
-            gemini_model: Optional[str] = None
+        self,
+        files_or_dir: str | List[str],
+        embedding_model: str,
+        chunker: Literal[
+            "token", "sentence", "semantic", "sdpm", "late", "neural", "slumber"
+        ],
+        tokenizer: Optional[str] = None,
+        chunk_size: Optional[int] = None,
+        chunk_overlap: Optional[int] = None,
+        similarity_threshold: Optional[float] = None,
+        min_characters_per_chunk: Optional[int] = None,
+        min_sentences: Optional[int] = None,
+        gemini_model: Optional[str] = None,
     ):
         """
         Ingest documents from files or directories using the specified chunking strategy and create a searchable vector index.
@@ -72,16 +79,38 @@ class IngestAnything:
         VectorStoreIndex
             Index containing the ingested and embedded document chunks.
         """
-        chunking = Chunking(chunker=chunker, chunk_size=chunk_size, chunk_overlap=chunk_overlap, similarity_threshold=similarity_threshold, min_characters_per_chunk=min_characters_per_chunk, min_sentences=min_sentences, gemini_model=gemini_model)
-        ingestion_input = IngestionInput(files_or_dir=files_or_dir, chunking=chunking, tokenizer=tokenizer, embedding_model=embedding_model)
-        docs = SimpleDirectoryReader(input_files=ingestion_input.files_or_dir, file_extractor={".pdf": self.reader}).load_data()
+        chunking = Chunking(
+            chunker=chunker,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            similarity_threshold=similarity_threshold,
+            min_characters_per_chunk=min_characters_per_chunk,
+            min_sentences=min_sentences,
+            gemini_model=gemini_model,
+        )
+        ingestion_input = IngestionInput(
+            files_or_dir=files_or_dir,
+            chunking=chunking,
+            tokenizer=tokenizer,
+            embedding_model=embedding_model,
+        )
+        docs = SimpleDirectoryReader(
+            input_files=ingestion_input.files_or_dir,
+            file_extractor={".pdf": self.reader},
+        ).load_data()
         text = "\n\n---\n\n".join([d.text for d in docs])
         chunks = ingestion_input.chunking.chunk(text)
         nodes = [TextNode(text=c.text, id_=str(uuid.uuid4())) for c in chunks]
         storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
-        index = VectorStoreIndex(nodes=nodes, embed_model=ChonkieAutoEmbedding(model_name=embedding_model), show_progress=True, storage_context=storage_context)
+        index = VectorStoreIndex(
+            nodes=nodes,
+            embed_model=ChonkieAutoEmbedding(model_name=embedding_model),
+            show_progress=True,
+            storage_context=storage_context,
+        )
         return index
-    
+
+
 class IngestCode:
     """
     IngestCode is a class for ingesting code files, chunking them, embedding the chunks, and storing them in a vector store for efficient search and retrieval.
@@ -92,17 +121,19 @@ class IngestCode:
     vector_store : BasePydanticVectorStore
         The vector store instance where embedded code chunks will be stored.
     """
+
     def __init__(self, vector_store: BasePydanticVectorStore):
         self.vector_store = vector_store
+
     def ingest(
-            self,
-            files: List[str],
-            embedding_model: str,
-            language: str,
-            return_type: Optional[Literal["chunks", "texts"]] = None,
-            tokenizer: Optional[str] = None,
-            chunk_size: Optional[int] = None,
-            include_nodes: Optional[bool] = None,
+        self,
+        files: List[str],
+        embedding_model: str,
+        language: str,
+        return_type: Optional[Literal["chunks", "texts"]] = None,
+        tokenizer: Optional[str] = None,
+        chunk_size: Optional[int] = None,
+        include_nodes: Optional[bool] = None,
     ):
         """
         Ingest code files and create a searchable vector index.
@@ -116,17 +147,28 @@ class IngestCode:
             tokenizer (str, optional): Name of tokenizer to use
             chunk_size (int, optional): Size of chunks for text splitting
             include_nodes (bool, optional): Whether to include AST nodes in chunking
-        
+
         Returns
         --------
             VectorStoreIndex: Index containing the ingested and embedded code chunks
         """
         fls = CodeFiles(files=files)
-        chunking = CodeChunking(language=language, return_type=return_type, tokenizer=tokenizer, chunk_size=chunk_size, include_nodes=include_nodes)
+        chunking = CodeChunking(
+            language=language,
+            return_type=return_type,
+            tokenizer=tokenizer,
+            chunk_size=chunk_size,
+            include_nodes=include_nodes,
+        )
         docs = SimpleDirectoryReader(input_files=fls.files).load_data()
         text = "\n\n---\n\n".join([d.text for d in docs])
         chunks = chunking.chunker.chunk(text)
         nodes = [TextNode(text=c.text, id_=str(uuid.uuid4())) for c in chunks]
         storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
-        index = VectorStoreIndex(nodes=nodes, embed_model=ChonkieAutoEmbedding(model_name=embedding_model), show_progress=True, storage_context=storage_context)
+        index = VectorStoreIndex(
+            nodes=nodes,
+            embed_model=ChonkieAutoEmbedding(model_name=embedding_model),
+            show_progress=True,
+            storage_context=storage_context,
+        )
         return index
