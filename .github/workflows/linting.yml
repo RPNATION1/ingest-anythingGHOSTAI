@@ -16,7 +16,8 @@ jobs:
         run: uv python install 3.12
 
       - name: Install pre-commit
-        run: uv pip install pre-commit
+        shell: bash
+        run: uv venv && source .venv/bin/activate && uv pip install pre-commit
 
       - name: Run linter
         shell: bash
