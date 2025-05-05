@@ -119,7 +119,7 @@ class IngestAnythingFunctionAgent(IngestAnything):
             self.query_engine = query_engine
         self.query_engine_tool = QueryEngineTool.from_defaults(
             query_engine=self.query_engine,
-            name="Query Engine Tool",
+            name="query_engine_tool",
             description="Retrieves information from a vector database",
         )
 
@@ -261,7 +261,7 @@ class IngestCodeFunctionAgent(IngestCode):
             self.query_engine = query_engine
         self.query_engine_tool = QueryEngineTool.from_defaults(
             query_engine=self.query_engine,
-            name="Query Engine Tool",
+            name="query_engine_tool",
             description="Retrieves information from a vector database containing code snippets",
         )
 
