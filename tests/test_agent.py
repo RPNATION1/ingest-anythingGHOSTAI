@@ -1,4 +1,5 @@
-from agent import IngestAgent, IngestAnythingFunctionAgent, IngestAnythingReActAgent, IngestCodeFunctionAgent, IngestCodeReActAgent, FunctionAgent, ReActAgent
+from agent_types import FunctionAgent, ReActAgent
+from agent import IngestAgent, IngestAnythingFunctionAgent, IngestAnythingReActAgent, IngestCodeFunctionAgent, IngestCodeReActAgent
 from llama_index.core import Settings
 from llama_index.llms.mistralai import MistralAI
 import os

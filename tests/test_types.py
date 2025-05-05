@@ -1,4 +1,5 @@
-from add_types import IngestionInput, Chunking, Tokenizer, TokenChunker, BaseEmbeddings, CodeChunking, CodeChunker, CodeFiles
+from add_types import IngestionInput, Chunking, Tokenizer, TokenChunker, CodeChunking, CodeChunker, CodeFiles
+from chonkie.embeddings import BaseEmbeddings
 import os
 from pydantic import ValidationError
 import pathlib
