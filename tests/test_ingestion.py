@@ -262,6 +262,6 @@ def test_code_ingestion():
             ingestor = IngestCode(vector_store=c["vector_store"])
             index = ingestor.ingest(files = c["files"], embedding_model="sentence-transformers/all-MiniLM-L6-v2", language=c["language"], return_type=c["return_type"], tokenizer=c["tokenizer"], chunk_size=c["chunk_size"], include_nodes=c["include_nodes"])
             outcome = [isinstance(index, VectorStoreIndex), c["client"].check_collection_exists()]
-        except Exception as e:
+        except Exception:
             outcome = None
         assert outcome == c["expected"], f"Failed on case id {c['id']}"

@@ -177,8 +177,13 @@ class IngestCodeFunctionAgent(IngestCode):
     get_agent(name, description, system_prompt)
         Creates and returns a FunctionAgent with configured tools.
     """
-
-    def __init__():
+    def __init__(
+        self,
+        vector_database: BasePydanticVectorStore,
+        llm: LLM,
+        tools: Optional[List[BaseTool | Callable | Awaitable]] = None,
+        query_transform: Optional[Literal["hyde", "multi_step"]] = None,
+    ) -> None:
         """Initialize the IngestCodeFunctionAgent.
         Parameters
         ----------
@@ -191,14 +196,6 @@ class IngestCodeFunctionAgent(IngestCode):
         query_transform : Optional[Literal["hyde", "multi_step"]], default=None
             The type of query transformation to apply.
         """
-
-    def __init__(
-        self,
-        vector_database: BasePydanticVectorStore,
-        llm: LLM,
-        tools: Optional[List[BaseTool | Callable | Awaitable]] = None,
-        query_transform: Optional[Literal["hyde", "multi_step"]] = None,
-    ) -> None:
         super().__init__(vector_store=vector_database)
         self.llm = llm
         self.query_transform = query_transform

@@ -69,7 +69,7 @@ def test_code_files():
         else:
             outcome = Counter(cfl.files)
         assert outcome == c["expected"]
-    
+
 
 def test_code_chunker():
     test_cases = [

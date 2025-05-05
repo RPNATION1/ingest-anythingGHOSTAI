@@ -4,7 +4,6 @@ from llama_index.llms.mistralai import MistralAI
 import os
 from dotenv import load_dotenv
 import weaviate
-from weaviate import WeaviateClient
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
 
 load_dotenv()
@@ -46,7 +45,7 @@ def test_everything():
 
     ## AGENTS TEST ##
 
-    # anything agents 
+    # anything agents
     agent_1.ingest(
         files_or_dir = anything_files,
         embedding_model = "sentence-transformers/all-MiniLM-L6-v2",

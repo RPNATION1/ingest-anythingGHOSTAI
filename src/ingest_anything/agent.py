@@ -1,7 +1,12 @@
 try:
-    from agent_types import *
+    from agent_types import IngestAnythingFunctionAgent, IngestAnythingReActAgent, IngestCodeFunctionAgent, IngestCodeReActAgent
 except ModuleNotFoundError:
-    from .agent_types import *
+    from .agent_types import IngestAnythingFunctionAgent, IngestAnythingReActAgent, IngestCodeFunctionAgent, IngestCodeReActAgent
+from llama_index.core.llms import LLM
+from llama_index.core.readers.base import BaseReader
+from llama_index.core.vector_stores.types import BasePydanticVectorStore
+from llama_index.core.tools import BaseTool
+from typing import Optional, Literal, List, Callable, Awaitable
 
 
 class IngestAgent:

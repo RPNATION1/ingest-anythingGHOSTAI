@@ -3,7 +3,6 @@ from typing import List, Literal, Optional
 import pathlib
 from typing_extensions import Self
 from chonkie import (
-    BaseEmbeddings,
     SemanticChunker,
     SDPMChunker,
     TokenChunker,

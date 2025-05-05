@@ -4,7 +4,7 @@
 </div>
 <br>
 <div align="center">
-    <a href="https://discord.gg/qxzFz9VE"><img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord Server" width=200 height=60></a>
+    <a href="https://discord.gg/AXcVf269"><img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord Server" width=200 height=60></a>
 </div>
 <br>
 <div align="center">
@@ -24,18 +24,20 @@ Find out more about `ingest-anything` on the [Documentation website](https://pdf
 **For text files**
 
 - The input files are converted into PDF by PdfItDown
-- The PDF text is extracted using LlamaIndex Docling reader
+- The PDF text is extracted using LlamaIndex-compatible reader
 - The text is chunked exploiting Chonkie's functionalities
-- The chunks are embedded thanks to Sentence Transformers models
-- The embeddings are loaded into a Qdrant vector database
+- The chunks are embedded thanks to an Embedding model from Sentence Transformers, OpenAI, Cohere, Jina AI or Model2Vec
+- The embeddings are loaded into a LlamaIndex-compatible vector database
 
 **For code files**
+
 - The text is extracted from code files using LlamaIndex SimpleDirectoryReader
 - The text is chunked exploiting Chonkie's CodeChunker
-- The chunks are embedded thanks to Sentence Transformers models
-- The embeddings are loaded into a Qdrant vector database
+- The chunks are embedded thanks to an Embedding model from Sentence Transformers, OpenAI, Cohere, Jina AI or Model2Vec
+- The embeddings are loaded into a LlamaIndex-compatible vector database
 
 **For Agent Workflow**
+
 - Initialize a vector database (e.g., Qdrant, Weaviate).
 - Initialize a language model (LLM) (e.g., OpenAI).
 - Create an `IngestAgent` instance.
@@ -63,7 +65,9 @@ from llama_index.vector_stores.qdrant import QdrantVectorStore
 
 client_qdrant = QdrantClient("http://localhost:6333")
 aclient_qdrant = AsyncQdrantClient("http://localhost:6333")
-vector_store_qdrant = QdrantVectorStore(collection_name="Test",client=client_qdrant, aclient=aclient_qdrant)
+vector_store_qdrant = QdrantVectorStore(
+    collection_name="Test", client=client_qdrant, aclient=aclient_qdrant
+)
 ingestor = IngestAnything(vector_store=vector_store_qdrant)
 ```
 
@@ -71,12 +75,29 @@ ingestor = IngestAnything(vector_store=vector_store_qdrant)
 
 ```python
 # with a list of files
-ingestor.ingest(chunker="late", files_or_dir=['tests/data/test.docx', 'tests/data/test0.png', 'tests/data/test1.csv', 'tests/data/test2.json', 'tests/data/test3.md', 'tests/data/test4.xml', 'tests/data/test5.zip'], embedding_model="sentence-transformers/all-MiniLM-L6-v2")
+ingestor.ingest(
+    chunker="late",
+    files_or_dir=[
+        "tests/data/test.docx",
+        "tests/data/test0.png",
+        "tests/data/test1.csv",
+        "tests/data/test2.json",
+        "tests/data/test3.md",
+        "tests/data/test4.xml",
+        "tests/data/test5.zip",
+    ],
+    embedding_model="sentence-transformers/all-MiniLM-L6-v2",
+)
 # with a directory
-ingestor.ingest(chunker="token", files_or_dir="tests/data", tokenizer="gpt2", embedding_model="sentence-transformers/all-MiniLM-L6-v2")
+ingestor.ingest(
+    chunker="token",
+    files_or_dir="tests/data",
+    tokenizer="gpt2",
+    embedding_model="sentence-transformers/all-MiniLM-L6-v2",
+)
 ```
 
-- You can also **initialize the interface for code files** 
+- You can also **initialize the interface for code files**
 
 ```python
 import os
@@ -103,7 +124,15 @@ ingestor = IngestCode(vector_store=vector_store_qdrant)
 
 ```python
 os.environ["OPENAI_API_KEY"] = "YOUR_API_KEY"
-ingestor.ingest(files=["tests/code/acronym.go", "tests/code/animal_magic.go", "tests/code/atbash_cipher_test.go"], embedding_model="text-embedding-3-small", language="go")
+ingestor.ingest(
+    files=[
+        "tests/code/acronym.go",
+        "tests/code/animal_magic.go",
+        "tests/code/atbash_cipher_test.go",
+    ],
+    embedding_model="text-embedding-3-small",
+    language="go",
+)
 ```
 
 You can also create a RAG agent in a fully automated way:
@@ -122,14 +151,16 @@ llm = OpenAI(api_key="YOUR_API_KEY")
 
 # 2. Initialize IngestAgent
 agent_factory = IngestAgent()
-vector_store = QdrantVectorStore(client=client, collection_name="my_collection")
+vector_store = QdrantVectorStore(
+    client=client, collection_name="my_collection"
+)
 
 # 3. Create Agent
 agent = agent_factory.create_agent(
     vector_database=vector_store,
     llm=llm,
     ingestion_type="anything",  # or "code"
-    agent_type="function_calling"  # or "react"
+    agent_type="function_calling",  # or "react"
 )
 
 # 4. Ingest Data
@@ -137,11 +168,13 @@ agent.ingest(
     files_or_dir="path/to/documents",
     embedding_model="sentence-transformers/all-mpnet-base-v2",
     chunker="semantic",
-    similarity_threshold=0.8
+    similarity_threshold=0.8,
 )
 
 # 5. Get Agent for Querying
-function_agent = agent.get_agent() # or react_agent = agent.get_agent() if you chose react
+function_agent = (
+    agent.get_agent()
+)  # or react_agent = agent.get_agent() if you chose react
 ```
 
 Find a representation of the agent workflow in the following diagram:

@@ -5,3 +5,6 @@ build/
 tests/__pycache__/
 tests/data/*.pdf
 .env
+.venv/
+.ruff_cache/
+.mypy_cache/
