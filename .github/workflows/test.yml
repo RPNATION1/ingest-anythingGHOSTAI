@@ -43,4 +43,5 @@ jobs:
           milvus_token: ${{ secrets.MILVUS_TOKEN }}
           weaviate_cluster_url: ${{ secrets.WEAVIATE_CLUSTER_URL }}
           weaviate_admin_key: ${{ secrets.WEAVIATE_ADMIN_KEY }}
+          mistralai_api_key: ${{ secrets.MISTRALAI_API_KEY }}
         run: hatch run test

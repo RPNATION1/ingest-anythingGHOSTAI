@@ -2,16 +2,27 @@ from pydantic import BaseModel, model_validator
 from typing import List, Literal, Optional
 import pathlib
 from typing_extensions import Self
-from chonkie import BaseEmbeddings, SemanticChunker, SDPMChunker, TokenChunker, SentenceChunker, LateChunker, CodeChunker, SlumberChunker, NeuralChunker
+from chonkie import (
+    SemanticChunker,
+    SDPMChunker,
+    TokenChunker,
+    SentenceChunker,
+    LateChunker,
+    CodeChunker,
+    SlumberChunker,
+    NeuralChunker,
+)
 from chonkie.genie import GeminiGenie
 from tokenizers import Tokenizer
 from pdfitdown.pdfconversion import Converter
+
 try:
     from embeddings import AutoEmbeddings
 except ModuleNotFoundError:
     from .embeddings import AutoEmbeddings
 
 pdf_converter = Converter()
+
 
 class Chunking(BaseModel):
     """
@@ -48,7 +59,10 @@ class Chunking(BaseModel):
         gemini_model (Optional[str]):
             The Gemini model name to use for "slumber" chunking. Defaults to "gemini-2.0-flash" if not specified and "slumber" is chosen.
     """
-    chunker: Literal["token", "sentence", "semantic", "sdpm", "late", "slumber", "neural"]
+
+    chunker: Literal[
+        "token", "sentence", "semantic", "sdpm", "late", "slumber", "neural"
+    ]
     chunk_size: Optional[int] = None
     chunk_overlap: Optional[int] = None
     similarity_threshold: Optional[float] = None
@@ -72,6 +86,7 @@ class Chunking(BaseModel):
             self.gemini_model = "gemini-2.0-flash"
         return self
 
+
 class CodeFiles(BaseModel):
     """A Pydantic model for validating and processing lists of code file paths.
 
@@ -84,7 +99,9 @@ class CodeFiles(BaseModel):
     Raises:
         ValueError: When none of the provided file paths exist in the filesystem.
     """
+
     files: List[str]
+
     @model_validator(mode="after")
     def valid_files(self) -> Self:
         fs = []
@@ -95,6 +112,7 @@ class CodeFiles(BaseModel):
             raise ValueError("The files you provided do not exist")
         self.files = fs
         return self
+
 
 class CodeChunking(BaseModel):
     """A Pydantic model for configuring code chunking parameters.
@@ -111,12 +129,14 @@ class CodeChunking(BaseModel):
         include_nodes (Optional[bool]): Whether to include AST nodes in the output.
             Defaults to False.
     """
+
     language: str
     return_type: Optional[Literal["chunks", "texts"]] = None
     tokenizer: Optional[str] = None
     chunk_size: Optional[int] = None
     include_nodes: Optional[bool] = None
     chunker: Optional[Literal["code"]] = None
+
     @model_validator(mode="after")
     def validate_chunking(self) -> Self:
         if self.chunk_size is None:
@@ -128,8 +148,15 @@ class CodeChunking(BaseModel):
         self.tokenizer = Tokenizer.from_pretrained(self.tokenizer)
         if self.include_nodes is None:
             self.include_nodes = False
-        self.chunker = CodeChunker(tokenizer_or_token_counter=self.tokenizer, chunk_size=self.chunk_size, language=self.language, include_nodes=self.include_nodes, return_type=self.return_type)
+        self.chunker = CodeChunker(
+            tokenizer_or_token_counter=self.tokenizer,
+            chunk_size=self.chunk_size,
+            language=self.language,
+            include_nodes=self.include_nodes,
+            return_type=self.return_type,
+        )
         return self
+
 
 class IngestionInput(BaseModel):
     """
@@ -137,55 +164,97 @@ class IngestionInput(BaseModel):
 
     This class handles different types of document inputs and chunking strategies, converting
     files and setting up appropriate chunking mechanisms based on the specified configuration.
-    
+
     Attributes:
-        
+
         files_or_dir : Union[str, List[str]]
             Path to directory containing files or list of file paths to process
-        
+
         chunking : Chunking
             Configuration for the chunking strategy to be used
-        
+
         tokenizer : Optional[str], default=None
             Name or path of the tokenizer model to be used (required for 'token' and 'sentence' chunking)
-        
+
         embedding_model : str
             Name or path of the embedding model to be used
     """
+
     files_or_dir: str | List[str]
     chunking: Chunking
     tokenizer: Optional[str] = None
     embedding_model: str
+
     @model_validator(mode="after")
     def validate_ingestion(self) -> Self:
         if isinstance(self.files_or_dir, str):
             self.files_or_dir = pdf_converter.convert_directory(self.files_or_dir)
             if len(self.files_or_dir) == 0:
-                raise ValueError("The directory or files input you provided was not convertible to PDF at all")
+                raise ValueError(
+                    "The directory or files input you provided was not convertible to PDF at all"
+                )
         elif isinstance(self.files_or_dir, list):
-            self.files_or_dir = pdf_converter.multiple_convert(file_paths=self.files_or_dir)
+            self.files_or_dir = pdf_converter.multiple_convert(
+                file_paths=self.files_or_dir
+            )
             if len(self.files_or_dir) == 0:
-                raise ValueError("The directory or files input you provided was not convertible to PDF at all")
+                raise ValueError(
+                    "The directory or files input you provided was not convertible to PDF at all"
+                )
         self.embedding_model = AutoEmbeddings.get_embeddings(model=self.embedding_model)
         if self.chunking.chunker == "token":
             if self.tokenizer is None:
-                raise ValueError(f"Tokenizer cannot be None if {self.chunking.chunker} chunking approach is chosen")
+                raise ValueError(
+                    f"Tokenizer cannot be None if {self.chunking.chunker} chunking approach is chosen"
+                )
             self.tokenizer = Tokenizer.from_pretrained(self.tokenizer)
-            self.chunking = TokenChunker(tokenizer=self.tokenizer, chunk_size=self.chunking.chunk_size, chunk_overlap=self.chunking.chunk_overlap)
+            self.chunking = TokenChunker(
+                tokenizer=self.tokenizer,
+                chunk_size=self.chunking.chunk_size,
+                chunk_overlap=self.chunking.chunk_overlap,
+            )
         elif self.chunking.chunker == "sentence":
             if self.tokenizer is None:
-                raise ValueError(f"Tokenizer cannot be None if {self.chunking.chunker} chunking approach is chosen")
+                raise ValueError(
+                    f"Tokenizer cannot be None if {self.chunking.chunker} chunking approach is chosen"
+                )
             self.tokenizer = Tokenizer.from_pretrained(self.tokenizer)
-            self.chunking = SentenceChunker(tokenizer_or_token_counter=self.tokenizer, chunk_size=self.chunking.chunk_size, chunk_overlap=self.chunking.chunk_overlap, min_sentences_per_chunk=self.chunking.min_sentences)
+            self.chunking = SentenceChunker(
+                tokenizer_or_token_counter=self.tokenizer,
+                chunk_size=self.chunking.chunk_size,
+                chunk_overlap=self.chunking.chunk_overlap,
+                min_sentences_per_chunk=self.chunking.min_sentences,
+            )
         elif self.chunking.chunker == "late":
-            self.chunking = LateChunker(embedding_model=self.embedding_model, chunk_size=self.chunking.chunk_size, min_characters_per_chunk=self.chunking.min_characters_per_chunk)
+            self.chunking = LateChunker(
+                embedding_model=self.embedding_model,
+                chunk_size=self.chunking.chunk_size,
+                min_characters_per_chunk=self.chunking.min_characters_per_chunk,
+            )
         elif self.chunking.chunker == "sdpm":
-            self.chunking = SDPMChunker(embedding_model=self.embedding_model, chunk_size=self.chunking.chunk_size, threshold=self.chunking.similarity_threshold, min_sentences=self.chunking.min_sentences)
+            self.chunking = SDPMChunker(
+                embedding_model=self.embedding_model,
+                chunk_size=self.chunking.chunk_size,
+                threshold=self.chunking.similarity_threshold,
+                min_sentences=self.chunking.min_sentences,
+            )
         elif self.chunking.chunker == "semantic":
-            self.chunking = SemanticChunker(embedding_model=self.embedding_model, threshold=self.chunking.similarity_threshold, min_sentences=self.chunking.min_sentences, chunk_size=self.chunking.chunk_size)
+            self.chunking = SemanticChunker(
+                embedding_model=self.embedding_model,
+                threshold=self.chunking.similarity_threshold,
+                min_sentences=self.chunking.min_sentences,
+                chunk_size=self.chunking.chunk_size,
+            )
         elif self.chunking.chunker == "slumber":
             genie = GeminiGenie(model=self.chunking.gemini_model)
-            self.chunking = SlumberChunker(genie=genie, tokenizer_or_token_counter=self.tokenizer, chunk_size=self.chunking.chunk_size, min_characters_per_chunk=self.chunking.min_characters_per_chunk)
+            self.chunking = SlumberChunker(
+                genie=genie,
+                tokenizer_or_token_counter=self.tokenizer,
+                chunk_size=self.chunking.chunk_size,
+                min_characters_per_chunk=self.chunking.min_characters_per_chunk,
+            )
         elif self.chunking.chunker == "neural":
-            self.chunking = NeuralChunker(min_characters_per_chunk=self.chunking.min_characters_per_chunk)
+            self.chunking = NeuralChunker(
+                min_characters_per_chunk=self.chunking.min_characters_per_chunk
+            )
         return self
