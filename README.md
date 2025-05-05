@@ -4,14 +4,16 @@
 </div>
 <br>
 <div align="center">
+    <a href="https://discord.gg/qxzFz9VE"><img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord Server" width=200 height=60></a>
+</div>
+<br>
+<div align="center">
     <img src="https://raw.githubusercontent.com/AstraBert/ingest-anything/main/logo.png" alt="Ingest-Anything Logo">
 </div>
 
-[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/qxzFz9VE)
+**`ingest-anything`** is a python package aimed at providing a smooth solution to ingest non-PDF files into vector databases, given that most ingestion pipelines are focused on PDF/markdown files. Leveraging [chonkie](https://docs.chonkie.ai/getting-started/introduction), [PdfItDown](https://github.com/AstraBert/PdfItDown), and [LlamaIndex](https://www.llamaindex.ai) integrations for vector databases and data loaders, `ingest-anything` gives you a fully-automated pipeline for document ingestion within few lines of code!
 
-**`ingest-anything`** is a python package aimed at providing a smooth solution to ingest non-PDF files into vector databases, given that most ingestion pipelines are focused on PDF/markdown files. Leveraging [chonkie](https://docs.chonkie.ai/getting-started/introduction), [PdfItDown](https://github.com/AstraBert/PdfItDown), [Llamaindex](https://www.llamaindex.ai), [Sentence Transformers](https://sbert.net) embeddings and [Qdrant](https://qdrant.tech), `ingest-anything` gives you a fully-automated pipeline for document ingestion within few lines of code!
-
-Find out more about `ingest-anything` on the [Documentation website](https://pdfitdown.eu/built-with-pdfitdown/ingest-anything)!
+Find out more about `ingest-anything` on the [Documentation website](https://pdfitdown.eu/built-with-pdfitdown/ingest-anything)! (still under construction)
 
 ## Workflow
 
@@ -33,7 +35,15 @@ Find out more about `ingest-anything` on the [Documentation website](https://pdf
 - The chunks are embedded thanks to Sentence Transformers models
 - The embeddings are loaded into a Qdrant vector database
 
-## Installation and usage
+**For Agent Workflow**
+- Initialize a vector database (e.g., Qdrant, Weaviate).
+- Initialize a language model (LLM) (e.g., OpenAI).
+- Create an `IngestAgent` instance.
+- Use the `create_agent` method to generate a specific agent type (e.g., `IngestAnythingFunctionAgent`, `IngestCodeReActAgent`).
+- Ingest data using the agent's `ingest` method.
+- Retrieve the agent using the `get_agent` method for querying and interaction.
+
+## Usage
 
 `ingest-anything` can be installed using `pip` in the following way:
 
@@ -94,6 +104,56 @@ ingestor = IngestCode(vector_store=vector_store_qdrant)
 ```python
 os.environ["OPENAI_API_KEY"] = "YOUR_API_KEY"
 ingestor.ingest(files=["tests/code/acronym.go", "tests/code/animal_magic.go", "tests/code/atbash_cipher_test.go"], embedding_model="text-embedding-3-small", language="go")
+```
+
+You can also create a RAG agent in a fully automated way:
+
+**Agent Workflow example**
+
+```python
+from qdrant_client import QdrantClient
+from llama_index.llms.openai import OpenAI
+from llama_index.vector_stores.qdrant import QdrantVectorStore
+from ingest_anything.agent import IngestAgent
+
+# 1. Initialize Vector Database and LLM
+client = QdrantClient(":memory:")  # Or your Qdrant setup
+llm = OpenAI(api_key="YOUR_API_KEY")
+
+# 2. Initialize IngestAgent
+agent_factory = IngestAgent()
+vector_store = QdrantVectorStore(client=client, collection_name="my_collection")
+
+# 3. Create Agent
+agent = agent_factory.create_agent(
+    vector_database=vector_store,
+    llm=llm,
+    ingestion_type="anything",  # or "code"
+    agent_type="function_calling"  # or "react"
+)
+
+# 4. Ingest Data
+agent.ingest(
+    files_or_dir="path/to/documents",
+    embedding_model="sentence-transformers/all-mpnet-base-v2",
+    chunker="semantic",
+    similarity_threshold=0.8
+)
+
+# 5. Get Agent for Querying
+function_agent = agent.get_agent() # or react_agent = agent.get_agent() if you chose react
+```
+
+Find a representation of the agent workflow in the following diagram:
+
+```mermaid
+graph LR
+A[Initialize Vector Database] --> B(Initialize LLM);
+B --> C{Create IngestAgent};
+C --> D{Create Agent with create_agent};
+D --> E{Ingest Data with ingest};
+E --> F{Get Agent with get_agent};
+F --> G[Ready for Querying];
 ```
 
 You can find a complete reference for the package in [REFERENCE.md](https://github.com/AstraBert/ingest-anything/tree/main/REFERENCE.md)
