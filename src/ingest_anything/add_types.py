@@ -15,14 +15,12 @@ from chonkie import (
 from chonkie.genie import GeminiGenie
 from tokenizers import Tokenizer
 from pdfitdown.pdfconversion import Converter
-
 try:
-    from embeddings import AutoEmbeddings
-except ModuleNotFoundError:
     from .embeddings import AutoEmbeddings
+except ImportError:
+    from embeddings import AutoEmbeddings
 
 pdf_converter = Converter()
-
 
 class Chunking(BaseModel):
     """

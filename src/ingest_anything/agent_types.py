@@ -9,14 +9,14 @@ from llama_index.core.query_engine import TransformQueryEngine, MultiStepQueryEn
 from typing import Callable, Awaitable, List, Optional, Literal
 
 try:
-    from ingestion import (
+    from .ingestion import (
         IngestAnything,
         IngestCode,
         BasePydanticVectorStore,
         BaseReader,
     )
-except ModuleNotFoundError:
-    from .ingestion import (
+except ImportError:
+    from ingestion import (
         IngestAnything,
         IngestCode,
         BasePydanticVectorStore,

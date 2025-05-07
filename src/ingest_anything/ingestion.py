@@ -1,16 +1,16 @@
+import uuid
 try:
-    from add_types import IngestionInput, Chunking, CodeChunking, CodeFiles
-    from embeddings import ChonkieAutoEmbedding
-except ModuleNotFoundError:
     from .add_types import IngestionInput, Chunking, CodeChunking, CodeFiles
     from .embeddings import ChonkieAutoEmbedding
+except ImportError:
+    from add_types import IngestionInput, Chunking, CodeChunking, CodeFiles
+    from embeddings import ChonkieAutoEmbedding
 from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, StorageContext
 from llama_index.core.readers.base import BaseReader
 from llama_index.core.vector_stores.types import BasePydanticVectorStore
-from llama_index.readers.docling import DoclingReader
+from llama_index.readers.file import PyMuPDFReader
 from llama_index.core.schema import TextNode
 from typing import Optional, Literal, List
-import uuid
 
 
 class IngestAnything:
@@ -22,7 +22,7 @@ class IngestAnything:
     vector_store : BasePydanticVectorStore
         The vector store instance where document embeddings will be stored.
     reader : Optional[BaseReader], default=None
-        Optional custom document reader. If not provided, a default DoclingReader is used.
+        Optional custom document reader. If not provided, a default PyMuPDF is used.
     """
 
     def __init__(
@@ -30,7 +30,7 @@ class IngestAnything:
     ):
         self.vector_store = vector_store
         if reader is None:
-            reader = DoclingReader()
+            reader = PyMuPDFReader()
         self.reader = reader
 
     def ingest(

@@ -99,7 +99,7 @@ This module defines the `IngestAnything` and `IngestCode` classes, which handle 
 
       - Parameters:
         - `vector_store` (`BasePydanticVectorStore`): The vector store instance where document embeddings will be stored.
-        - `reader` (`Optional[BaseReader]`, default=`None`): Optional custom document reader. If not provided, a default DoclingReader is used.
+        - `reader` (`Optional[BaseReader]`, default=`None`): Optional custom document reader. If not provided, a default PyMuPDF is used.
       - Example:
 
         ```python
