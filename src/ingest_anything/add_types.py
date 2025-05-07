@@ -14,15 +14,13 @@ from chonkie import (
 )
 from chonkie.genie import GeminiGenie
 from tokenizers import Tokenizer
-from llama_index.readers.file import PyMuPDFReader
 from pdfitdown.pdfconversion import Converter
 try:
     from .embeddings import AutoEmbeddings
 except ImportError:
     from embeddings import AutoEmbeddings
 
-reader = PyMuPDFReader()
-pdf_converter = Converter(reader=reader)
+pdf_converter = Converter()
 
 class Chunking(BaseModel):
     """
