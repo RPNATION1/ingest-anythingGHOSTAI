@@ -20,7 +20,8 @@ dependencies = [
   'chonkie[all]',
   'pydantic',
   'pdfitdown',
-  'llama-index-readers-file'
+  'llama-index-readers-file',
+  'oarc-crawlers>=0.1.11'
 ]
 
 [project.urls]
