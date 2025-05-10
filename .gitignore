@@ -8,3 +8,4 @@ tests/data/*.pdf
 .venv/
 .ruff_cache/
 .mypy_cache/
+data/

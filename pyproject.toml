@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ingest-anything"
-version = "1.1.1"
+version = "1.2.0"
 authors = [
   {name = "Clelia (Astra) Bertelli", email = "astraberte9@gmail.com"}
 ]
@@ -37,6 +37,8 @@ only-include = ["src/ingest_anything"]
 [tool.hatch.envs.default]
 dependencies = [
   "pytest",
+  "pytest-ordering",
+  "pytest-asyncio",
   "llama-index-vector-stores-milvus",
   "llama-index-vector-stores-qdrant",
   "llama-index-vector-stores-weaviate",
@@ -49,7 +51,7 @@ dependencies = [
 42 = "3.12"
 
 [tool.hatch.envs.default.scripts]
-test = "cp src/ingest_anything/*e*.py tests/ && pytest tests/test_*.py -p no:warnings && rm -rf tests/add_types.py && rm -rf tests/agent_types.py && rm -rf tests/ingestion.py && rm -rf tests/embeddings.py && rm -rf tests/agent.py"
+test = "cp src/ingest_anything/*e*.py tests/ && pytest tests/test_*.py -p no:warnings && rm -rf tests/add_types.py && rm -rf tests/agent_types.py && rm -rf tests/ingestion.py && rm -rf tests/embeddings.py && rm -rf tests/agent.py && rm -rf tests/web_ingestion.py"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -12,15 +12,17 @@ from chonkie import (
     SlumberChunker,
     NeuralChunker,
 )
-from chonkie.genie import GeminiGenie
+from chonkie.genie import GeminiGenie, OpenAIGenie
 from tokenizers import Tokenizer
 from pdfitdown.pdfconversion import Converter
+
 try:
     from .embeddings import AutoEmbeddings
 except ImportError:
     from embeddings import AutoEmbeddings
 
 pdf_converter = Converter()
+
 
 class Chunking(BaseModel):
     """
@@ -54,8 +56,11 @@ class Chunking(BaseModel):
         min_sentences (Optional[int]):
             The minimum number of sentences required for a valid chunk. Defaults to 1 if not specified.
 
-        gemini_model (Optional[str]):
-            The Gemini model name to use for "slumber" chunking. Defaults to "gemini-2.0-flash" if not specified and "slumber" is chosen.
+        slumber_genie (Optional[Literal["openai", "gemini"]]):
+            The LLM provider for the SlumberChunker. Defaults to "openai".
+
+        slumber_model (Optional[str]):
+            The Gemini model name to use for "slumber" chunking. Defaults to "gemini-2.0-flash" or "gpt-4.1" (based on the "slumber_genie" choice) if not specified and "slumber" is chosen.
     """
 
     chunker: Literal[
@@ -66,7 +71,8 @@ class Chunking(BaseModel):
     similarity_threshold: Optional[float] = None
     min_characters_per_chunk: Optional[int] = None
     min_sentences: Optional[int] = None
-    gemini_model: Optional[str] = None
+    slumber_genie: Optional[Literal["openai", "gemini"]] = None
+    slumber_model: Optional[str] = None
 
     @model_validator(mode="after")
     def validate_chunking(self) -> Self:
@@ -80,8 +86,13 @@ class Chunking(BaseModel):
             self.min_characters_per_chunk = 24
         if self.min_sentences is None:
             self.min_sentences = 1
-        if self.chunker == "slumber" and self.gemini_model is None:
-            self.gemini_model = "gemini-2.0-flash"
+        if self.chunker == "slumber" and self.slumber_genie is None:
+            self.slumber_genie = "openai"
+        if self.chunker == "slumber" and self.slumber_model is None:
+            if self.slumber_genie == "openai":
+                self.slumber_model = "gpt-4.1"
+            elif self.slumber_genie == "gemini":
+                self.slumber_model = "gemini-2.0-flash"
         return self
 
 
@@ -244,7 +255,10 @@ class IngestionInput(BaseModel):
                 chunk_size=self.chunking.chunk_size,
             )
         elif self.chunking.chunker == "slumber":
-            genie = GeminiGenie(model=self.chunking.gemini_model)
+            if self.chunking.slumber_genie == "gemini":
+                genie = GeminiGenie(model=self.chunking.slumber_model)
+            elif self.chunking.slumber_genie == "openai":
+                genie = OpenAIGenie(model=self.chunking.slumber_model)
             self.chunking = SlumberChunker(
                 genie=genie,
                 tokenizer_or_token_counter=self.tokenizer,

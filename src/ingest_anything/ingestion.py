@@ -1,4 +1,5 @@
 import uuid
+
 try:
     from .add_types import IngestionInput, Chunking, CodeChunking, CodeFiles
     from .embeddings import ChonkieAutoEmbedding
@@ -46,7 +47,8 @@ class IngestAnything:
         similarity_threshold: Optional[float] = None,
         min_characters_per_chunk: Optional[int] = None,
         min_sentences: Optional[int] = None,
-        gemini_model: Optional[str] = None,
+        slumber_genie: Optional[Literal["openai", "gemini"]] = None,
+        slumber_model: Optional[str] = None,
     ):
         """
         Ingest documents from files or directories using the specified chunking strategy and create a searchable vector index.
@@ -71,8 +73,10 @@ class IngestAnything:
             Minimum number of characters per chunk.
         min_sentences : int, optional
             Minimum number of sentences per chunk.
-        gemini_model : str, optional
-            Name of Gemini model to use for chunking, if applicable.
+        slumber_genie (Optional[Literal["openai", "gemini"]]):
+            The LLM provider for the SlumberChunker. Defaults to "openai".
+        slumber_model (Optional[str]):
+            The Gemini model name to use for "slumber" chunking. Defaults to "gemini-2.0-flash" or "gpt-4.1" (based on the "slumber_genie" choice) if not specified and "slumber" is chosen.
 
         Returns
         -------
@@ -86,7 +90,8 @@ class IngestAnything:
             similarity_threshold=similarity_threshold,
             min_characters_per_chunk=min_characters_per_chunk,
             min_sentences=min_sentences,
-            gemini_model=gemini_model,
+            slumber_genie=slumber_genie,
+            slumber_model=slumber_model,
         )
         ingestion_input = IngestionInput(
             files_or_dir=files_or_dir,
