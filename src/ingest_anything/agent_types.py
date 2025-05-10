@@ -70,7 +70,8 @@ class IngestAnythingFunctionAgent(IngestAnything):
         similarity_threshold: Optional[float] = None,
         min_characters_per_chunk: Optional[int] = None,
         min_sentences: Optional[int] = None,
-        gemini_model: Optional[str] = None,
+        slumber_genie: Optional[Literal["openai", "gemini"]] = None,
+        slumber_model: Optional[str] = None,
     ):
         """
         Ingests files or directories into a vector store index using the specified embedding model and chunking strategy.
@@ -85,7 +86,9 @@ class IngestAnythingFunctionAgent(IngestAnything):
             similarity_threshold (Optional[float], optional): Minimum similarity threshold for semantic chunking. Defaults to None.
             min_characters_per_chunk (Optional[int], optional): Minimum number of characters per chunk. Defaults to None.
             min_sentences (Optional[int], optional): Minimum number of sentences per chunk. Defaults to None.
-            gemini_model (Optional[str], optional): Name of the Gemini model to use, if applicable. Defaults to None.
+            slumber_genie (Optional[Literal["openai", "gemini"]]):
+            The LLM provider for the SlumberChunker. Defaults to "openai".slumber_model (Optional[str]):
+            The Gemini model name to use for "slumber" chunking. Defaults to "gemini-2.0-flash" or "gpt-4.1" (based on the "slumber_genie" choice) if not specified and "slumber" is chosen.
 
         Returns:
             None
@@ -100,7 +103,8 @@ class IngestAnythingFunctionAgent(IngestAnything):
             similarity_threshold,
             min_characters_per_chunk,
             min_sentences,
-            gemini_model,
+            slumber_genie,
+            slumber_model,
         )
 
     def _get_query_engine_tool(self) -> None:
@@ -177,6 +181,7 @@ class IngestCodeFunctionAgent(IngestCode):
     get_agent(name, description, system_prompt)
         Creates and returns a FunctionAgent with configured tools.
     """
+
     def __init__(
         self,
         vector_database: BasePydanticVectorStore,

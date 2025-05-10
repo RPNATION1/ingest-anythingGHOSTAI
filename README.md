@@ -104,6 +104,7 @@ import os
 from dotenv import load_dotenv
 import weaviate
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
+from ingest_anything.ingestion import IngestCode
 
 load_dotenv()
 
@@ -132,6 +133,46 @@ ingestor.ingest(
     ],
     embedding_model="text-embedding-3-small",
     language="go",
+)
+```
+
+You can also ingest data from the web:
+
+```python
+import os
+from dotenv import load_dotenv
+import weaviate
+from llama_index.vector_stores.weaviate import WeaviateVectorStore
+from ingest_anything.web_ingestion import IngestWeb
+
+load_dotenv()
+
+cluster_url = os.getenv("weaviate_cluster_url")
+api_key = os.getenv("weaviate_admin_key")
+client_weaviate = weaviate.connect_to_weaviate_cloud(
+    cluster_url=cluster_url,
+    auth_credentials=weaviate.auth.AuthApiKey(api_key),
+)
+vector_store_weaviate = WeaviateVectorStore(
+    weaviate_client=client_weaviate, index_name="Test"
+)
+
+ingestor = IngestWeb(vector_store=vector_store_qdrant)
+```
+
+And now ingest starting from one or more URLs:
+
+```python
+ingestor.ingest(
+    urls = [
+        "https://astrabert.github.io/hophop-science/AI-is-turning-nuclear-a-review/",
+        "https://astrabert.github.io/hophop-science/BrAIn-next-generation-neurons/",
+        "https://astrabert.github.io/hophop-science/Attention-and-open-source-is-all-you-need/",
+    ],
+    chunker="slumber",
+    slumber_genie="openai",
+    slumber_model="gpt-4o-mini",
+    embedding_model="sentence-transformers/all-MiniLM-L6-v2",
 )
 ```
 
