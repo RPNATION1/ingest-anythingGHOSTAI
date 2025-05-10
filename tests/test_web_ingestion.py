@@ -1,6 +1,7 @@
 from web_ingestion import IngestWeb, VectorStoreIndex
 import pytest
 import os
+import sys
 from dotenv import load_dotenv
 import weaviate
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
@@ -19,15 +20,13 @@ vector_store_weaviate = WeaviateVectorStore(
 )
 
 
-@pytest.mark.asyncio
 @pytest.mark.order1
-async def test_initialization():
+def test_initialization():
     try:
         ingestor = IngestWeb(vector_database=vector_store_weaviate)
     except Exception:
         ingestor = None
     assert isinstance(ingestor, IngestWeb)
-
 
 @pytest.mark.asyncio
 @pytest.mark.order2
@@ -59,7 +58,7 @@ async def test_web_ingestion():
             "similarity_threshold": None,
             "min_characters_per_chunk": None,
             "min_sentences": None,
-            "urls": "https://astrabert.github.io/hophop-science/AI-is-turning-nuclear-a-review/",
+            "urls": "https://astrabert.github.io/hophop-science/Why-we-dont-need-export-control/",
             "tokenizer": "gpt2",
             "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
             "slumber_genie": None,
@@ -101,5 +100,5 @@ async def test_web_ingestion():
                 client_weaviate.collections.exists("TestWeb"),
             ] == test_case["expected"]
         except Exception as e:
-            print(e.__str__())
+            print("ERROR: ", e, file=sys.stderr)
             assert test_case["expected"] is None

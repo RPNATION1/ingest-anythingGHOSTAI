@@ -1,7 +1,5 @@
-import time
 import os
 from typing import Literal, List, Optional
-
 try:
     from .ingestion import (
         BasePydanticVectorStore,
@@ -15,6 +13,7 @@ try:
     )
     from .embeddings import ChonkieAutoEmbedding
     from .add_types import Converter, Chunking, IngestionInput
+    from .crawlee_utils import crawler
 except ImportError:
     from ingestion import (
         BasePydanticVectorStore,
@@ -28,12 +27,16 @@ except ImportError:
     )
     from embeddings import ChonkieAutoEmbedding
     from add_types import Converter, Chunking, IngestionInput
-from oarc_crawlers import WebCrawler
+    from crawlee_utils import crawler
 
-crawler = WebCrawler()
 default_reader = PyMuPDFReader()
 pdf_converter = Converter()
 
+def remove_tmp_files():
+    for root, _, fls in os.walk("tmp/ingest_anything/"):
+        for f in fls:
+            pt = root + "/" + f
+            os.remove(pt)
 
 class IngestWeb:
     """
@@ -53,41 +56,13 @@ class IngestWeb:
             self.reader = default_reader
         self.reader = reader
 
-    async def _fetch_from_web(self, url: str) -> str:
+    async def _batch_fetch_from_web(self, urls: str | List[str]):
         """
-        Asynchronously fetches the HTML content from the specified URL, saves it as a temporary HTML file,
-        converts the HTML file to a PDF, deletes the temporary HTML file, and returns the path to the generated PDF.
-
-        Args
-        -----
-            url (str): The URL to fetch HTML content from.
-
-        Returns
-        -------
-            str: The file path to the generated PDF.
-
-        Raises
-        ------
-            Any exceptions raised by the crawler, file operations, or PDF conversion will propagate.
-        """
-        html_content = await crawler.fetch_url_content(url)
-        current_time = str(time.time()).replace(".", "")
-        with open(f"{current_time}.html", "w") as f:
-            f.write(html_content)
-        f.close()
-        fl_pt = pdf_converter.convert(
-            file_path=f"{current_time}.html", output_path=f"{current_time}.pdf"
-        )
-        os.remove(f"{current_time}.html")
-        return fl_pt
-
-    async def _batch_fetch_from_web(self, urls: List[str]):
-        """
-        Asynchronously fetches data from a list of URLs using the _fetch_from_web method.
+        Asynchronously fetches data from a list of URLs using a Crawlee crawler.
 
         Args
         ----
-            urls (List[str]): A list of URLs to fetch data from.
+            urls (str | List[str]): A URL or a list of URLs to fetch data from.
 
         Returns
         -------
@@ -97,15 +72,13 @@ class IngestWeb:
         ------
             ValueError: If none of the provided URLs could be successfully extracted.
         """
-        fls = []
-        for url in urls:
-            fl = await self._fetch_from_web(url)
-            if fl is not None:
-                fls.append(fl)
-        if len(fls) == 0:
-            raise ValueError("None of the passed URLs was correctly extracted")
-        return fls
-
+        os.makedirs("tmp/ingest_anything", exist_ok=True)
+        if isinstance(urls, str):
+            urls = [urls]
+        try:
+            await crawler.run(urls)
+        except Exception as e:
+            raise ValueError(f"Unable to fetch the URLs at this time because of error: {e.__str__()}")
     async def ingest(
         self,
         urls: str | List[str],
@@ -148,13 +121,7 @@ class IngestWeb:
         -------
             VectorStoreIndex: An index of the ingested and chunked web content, ready for vector search.
         """
-        if isinstance(urls, str):
-            fl = await self._fetch_from_web(urls)
-            if fl is None:
-                raise ValueError("The passed URL was not correctly extracted")
-            fls = [fl]
-        if isinstance(urls, list):
-            fls = await self._batch_fetch_from_web(urls)
+        await self._batch_fetch_from_web(urls)
         chunking = Chunking(
             chunker=chunker,
             chunk_size=chunk_size,
@@ -166,7 +133,7 @@ class IngestWeb:
             slumber_model=slumber_model,
         )
         ingestion_input = IngestionInput(
-            files_or_dir=fls,
+            files_or_dir="tmp/ingest_anything",
             chunking=chunking,
             tokenizer=tokenizer,
             embedding_model=embedding_model,
@@ -185,6 +152,5 @@ class IngestWeb:
             show_progress=True,
             storage_context=storage_context,
         )
-        for fl in fls:
-            os.remove(fl)
+        remove_tmp_files()
         return index

@@ -9,3 +9,5 @@ tests/data/*.pdf
 .ruff_cache/
 .mypy_cache/
 data/
+tmp/
+storage/
