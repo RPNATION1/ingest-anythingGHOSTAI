@@ -58,7 +58,7 @@ code_files = [
 result_files = [
     "tests/data/test.pdf",
     "tests/data/test0.pdf",
-    "tests/data/test1.csv",
+    "tests/data/test1.pdf",
     "tests/data/test2.pdf",
     "tests/data/test3.pdf",
     "tests/data/test4.pdf",
