@@ -36,6 +36,13 @@ pdf_converter = Converter()
 
 
 class IngestWeb:
+    """
+    IngestWeb is a class for ingesting web content into a vector database pipeline.
+    This class provides asynchronous methods to fetch web pages, convert them to PDF, chunk the extracted text, and index the resulting data into a vector store for downstream retrieval or search tasks.
+    Attributes:
+        vector_store (BasePydanticVectorStore): The vector database to store ingested data.
+        reader (BaseReader): Reader instance for extracting text from PDF files.
+    """
     def __init__(
         self,
         vector_database: BasePydanticVectorStore,
@@ -47,6 +54,22 @@ class IngestWeb:
         self.reader = reader
 
     async def _fetch_from_web(self, url: str) -> str:
+        """
+        Asynchronously fetches the HTML content from the specified URL, saves it as a temporary HTML file,
+        converts the HTML file to a PDF, deletes the temporary HTML file, and returns the path to the generated PDF.
+
+        Args
+        -----
+            url (str): The URL to fetch HTML content from.
+
+        Returns
+        -------
+            str: The file path to the generated PDF.
+
+        Raises
+        ------
+            Any exceptions raised by the crawler, file operations, or PDF conversion will propagate.
+        """
         html_content = await crawler.fetch_url_content(url)
         current_time = str(time.time()).replace(".", "")
         with open(f"{current_time}.html", "w") as f:
@@ -59,6 +82,21 @@ class IngestWeb:
         return fl_pt
 
     async def _batch_fetch_from_web(self, urls: List[str]):
+        """
+        Asynchronously fetches data from a list of URLs using the _fetch_from_web method.
+
+        Args
+        ----
+            urls (List[str]): A list of URLs to fetch data from.
+
+        Returns
+        -------
+            List[Any]: A list of fetched results for each successfully processed URL.
+
+        Raises
+        ------
+            ValueError: If none of the provided URLs could be successfully extracted.
+        """
         fls = []
         for url in urls:
             fl = await self._fetch_from_web(url)
@@ -84,6 +122,32 @@ class IngestWeb:
         slumber_genie: Optional[Literal["openai", "gemini"]] = None,
         slumber_model: Optional[str] = None,
     ):
+        """
+        Ingests web content from one or more URLs, processes it into text chunks, and indexes it using a vector store.
+
+        Args
+        ----
+            urls (str | List[str]): A single URL or a list of URLs to ingest content from.
+            embedding_model (str): The name of the embedding model to use for vectorization.
+            chunker (Literal["token", "sentence", "semantic", "sdpm", "late", "neural", "slumber"]):
+                The chunking strategy to use for splitting the text.
+            tokenizer (Optional[str], optional): The tokenizer to use for chunking. Defaults to None.
+            chunk_size (Optional[int], optional): The size of each chunk. Defaults to None.
+            chunk_overlap (Optional[int], optional): The number of overlapping tokens or sentences between chunks. Defaults to None.
+            similarity_threshold (Optional[float], optional): The similarity threshold for semantic chunking. Defaults to None.
+            min_characters_per_chunk (Optional[int], optional): Minimum number of characters per chunk. Defaults to None.
+            min_sentences (Optional[int], optional): Minimum number of sentences per chunk. Defaults to None.
+            slumber_genie (Optional[Literal["openai", "gemini"]], optional): The Slumber Genie provider for neural chunking. Defaults to None.
+            slumber_model (Optional[str], optional): The model name for Slumber Genie. Defaults to None.
+
+        Raises
+        ------
+            ValueError: If a single URL is provided and cannot be fetched or extracted.
+
+        Returns
+        -------
+            VectorStoreIndex: An index of the ingested and chunked web content, ready for vector search.
+        """
         if isinstance(urls, str):
             fl = await self._fetch_from_web(urls)
             if fl is None:
