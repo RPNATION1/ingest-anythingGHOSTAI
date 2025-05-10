@@ -26,7 +26,7 @@ async def test_initialization():
         ingestor = IngestWeb(vector_database=vector_store_weaviate)
     except Exception:
         ingestor = None
-    assert isinstance(ingestor, str) is None
+    assert isinstance(ingestor, IngestWeb)
 
 
 @pytest.mark.asyncio
