@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ingest-anything"
-version = "1.2.0"
+version = "1.3.0"
 authors = [
   {name = "Clelia (Astra) Bertelli", email = "astraberte9@gmail.com"}
 ]
 description = "ingest-anything: from data to vector database effortlessly"
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.10,<3.13"
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
@@ -21,7 +21,7 @@ dependencies = [
   'pydantic',
   'pdfitdown',
   'llama-index-readers-file',
-  'oarc-crawlers'
+  'crawlee[beautifulsoup]'
 ]
 
 [project.urls]
@@ -51,7 +51,7 @@ dependencies = [
 42 = "3.12"
 
 [tool.hatch.envs.default.scripts]
-test = "cp src/ingest_anything/*e*.py tests/ && pytest tests/test_*.py -p no:warnings && rm -rf tests/add_types.py && rm -rf tests/agent_types.py && rm -rf tests/ingestion.py && rm -rf tests/embeddings.py && rm -rf tests/agent.py && rm -rf tests/web_ingestion.py"
+test = "cp src/ingest_anything/*e*.py tests/ && pytest tests/test_*.py -p no:warnings && rm -rf tests/add_types.py && rm -rf tests/agent_types.py && rm -rf tests/ingestion.py && rm -rf tests/embeddings.py && rm -rf tests/agent.py && rm -rf tests/web_ingestion.py && rm -rf tests/crawlee_utils.py"
 
 [tool.setuptools.packages.find]
 where = ["src"]
