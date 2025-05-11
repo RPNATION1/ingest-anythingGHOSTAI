@@ -15,7 +15,7 @@
 
 Find out more about `ingest-anything` on the [Documentation website](https://pdfitdown.eu/built-with-pdfitdown/ingest-anything)! (still under construction)
 
-## Workflow+
+## Workflow
 
 <div align="center">
     <img src="https://raw.githubusercontent.com/AstraBert/ingest-anything/main/workflow.png" alt="Ingest-Anything Workflow">
@@ -33,6 +33,15 @@ Find out more about `ingest-anything` on the [Documentation website](https://pdf
 
 - The text is extracted from code files using LlamaIndex SimpleDirectoryReader
 - The text is chunked exploiting Chonkie's CodeChunker
+- The chunks are embedded thanks to an Embedding model from Sentence Transformers, OpenAI, Cohere, Jina AI or Model2Vec
+- The embeddings are loaded into a LlamaIndex-compatible vector database
+
+\*_For web data_
+
+- HTML content is scraped from URLs with [crawlee](https://crawlee.dev)
+- HTML files are turned into PDFs with PdfItDown
+- The text is extracted from PDF files using LlamaIndex PyMuPdfReader
+- The text is chunked exploiting Chonkie's chunkers
 - The chunks are embedded thanks to an Embedding model from Sentence Transformers, OpenAI, Cohere, Jina AI or Model2Vec
 - The embeddings are loaded into a LlamaIndex-compatible vector database
 
@@ -136,7 +145,7 @@ ingestor.ingest(
 )
 ```
 
-You can also ingest data from the web:
+You can also ingest **data from the web**:
 
 ```python
 import os
@@ -163,22 +172,25 @@ ingestor = IngestWeb(vector_store=vector_store_qdrant)
 And now ingest starting from one or more URLs:
 
 ```python
-ingestor.ingest(
-    urls = [
-        "https://astrabert.github.io/hophop-science/AI-is-turning-nuclear-a-review/",
-        "https://astrabert.github.io/hophop-science/BrAIn-next-generation-neurons/",
-        "https://astrabert.github.io/hophop-science/Attention-and-open-source-is-all-you-need/",
-    ],
-    chunker="slumber",
-    slumber_genie="openai",
-    slumber_model="gpt-4o-mini",
-    embedding_model="sentence-transformers/all-MiniLM-L6-v2",
-)
+import asyncio
+async def main():
+	await ingestor.ingest(
+    	urls = [
+        	"https://astrabert.github.io/hophop-science/AI-is-turning-nuclear-a-review/",
+        	"https://astrabert.github.io/hophop-science/BrAIn-next-generation-neurons/",
+        	"https://astrabert.github.io/hophop-science/Attention-and-open-source-is-all-you-need/",
+    	],
+    	chunker="slumber",
+    	slumber_genie="openai",
+    	slumber_model="gpt-4o-mini",
+    	embedding_model="sentence-transformers/all-MiniLM-L6-v2",
+	)
+
+if __name__ == "__main__":
+	asyncio.run(main())
 ```
 
-You can also create a RAG agent in a fully automated way:
-
-**Agent Workflow example**
+You can also create a **RAG agent in a fully automated way**:
 
 ```python
 from qdrant_client import QdrantClient
