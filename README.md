@@ -1,89 +1,79 @@
-<div align="center">
-<h1>ingest-anything</h1>
-<h2>From data to vector database effortlessly</h2>
-</div>
-<br>
-<div align="center">
-    <a href="https://discord.gg/AXcVf269"><img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord Server" width=200 height=60></a>
-</div>
-<br>
-<div align="center">
-    <img src="https://raw.githubusercontent.com/AstraBert/ingest-anything/main/logo.png" alt="Ingest-Anything Logo">
-</div>
+ghostai-ingest
+Effortless Data Ingestion for Vector Databases by GhostAI
 
-**`ingest-anything`** is a python package aimed at providing a smooth solution to ingest non-PDF files into vector databases, given that most ingestion pipelines are focused on PDF/markdown files. Leveraging [chonkie](https://docs.chonkie.ai/getting-started/introduction), [PdfItDown](https://github.com/AstraBert/PdfItDown), and [LlamaIndex](https://www.llamaindex.ai) integrations for vector databases and data loaders, `ingest-anything` gives you a fully-automated pipeline for document ingestion within few lines of code!
+Join Discord Server: https://discord.gg/AXcVf269
+GhostAI-Ingest Logo: https://raw.githubusercontent.com/AstraBert/ingest-anything/main/logo.png
 
-Find out more about `ingest-anything` on the [Documentation website](https://pdfitdown.eu/built-with-pdfitdown/ingest-anything)! (still under construction)
+ghostai-ingest is a white-label fork of ingest-anything, rebranded by GhostAI to deliver a powerful, open-source solution for ingesting non-PDF files into vector databases. Designed for GhostAI's innovative workflows, this package avoids paid APIs by leveraging local LLMs and embedding models from Hugging Face (HF) containers. It integrates chonkie (https://docs.chonkie.ai/getting-started/introduction), PdfItDown (https://github.com/AstraBert/PdfItDown), and LlamaIndex (https://www.llamaindex.ai) to provide an automated ingestion pipeline with minimal code.
 
-## Workflow
+Learn more about ghostai-ingest on GhostAI's Documentation website (under construction)
 
-<div align="center">
-    <img src="https://raw.githubusercontent.com/AstraBert/ingest-anything/main/workflow.png" alt="Ingest-Anything Workflow">
-</div>
+Workflow
 
-**For text files**
+GhostAI-Ingest Workflow: https://raw.githubusercontent.com/AstraBert/ingest-anything/main/workflow.png
 
-- The input files are converted into PDF by PdfItDown
-- The PDF text is extracted using LlamaIndex-compatible reader
-- The text is chunked exploiting Chonkie's functionalities
-- The chunks are embedded thanks to an Embedding model from Sentence Transformers, OpenAI, Cohere, Jina AI or Model2Vec
-- The embeddings are loaded into a LlamaIndex-compatible vector database
+For Text Files
+- Input files are converted to PDF by PdfItDown.
+- PDF text is extracted using a LlamaIndex-compatible reader.
+- Text is chunked using Chonkie's functionalities.
+- Chunks are embedded with a local Hugging Face model (e.g., sentence-transformers/all-MiniLM-L6-v2).
+- Embeddings are loaded into a LlamaIndex-compatible vector database.
 
-**For code files**
+For Code Files
+- Text is extracted from code files using LlamaIndex SimpleDirectoryReader.
+- Text is chunked using Chonkie's CodeChunker.
+- Chunks are embedded with a local Hugging Face model (e.g., sentence-transformers/all-MiniLM-L6-v2).
+- Embeddings are loaded into a LlamaIndex-compatible vector database.
 
-- The text is extracted from code files using LlamaIndex SimpleDirectoryReader
-- The text is chunked exploiting Chonkie's CodeChunker
-- The chunks are embedded thanks to an Embedding model from Sentence Transformers, OpenAI, Cohere, Jina AI or Model2Vec
-- The embeddings are loaded into a LlamaIndex-compatible vector database
+For Web Data
+- HTML content is scraped from URLs with crawlee (https://crawlee.dev).
+- HTML files are converted to PDFs with PdfItDown.
+- Text is extracted from PDFs using LlamaIndex PyMuPdfReader.
+- Text is chunked using Chonkie's chunkers.
+- Chunks are embedded with a local Hugging Face model (e.g., sentence-transformers/all-MiniLM-L6-v2).
+- Embeddings are loaded into a LlamaIndex-compatible vector database.
 
-\*_For web data_
-
-- HTML content is scraped from URLs with [crawlee](https://crawlee.dev)
-- HTML files are turned into PDFs with PdfItDown
-- The text is extracted from PDF files using LlamaIndex PyMuPdfReader
-- The text is chunked exploiting Chonkie's chunkers
-- The chunks are embedded thanks to an Embedding model from Sentence Transformers, OpenAI, Cohere, Jina AI or Model2Vec
-- The embeddings are loaded into a LlamaIndex-compatible vector database
-
-**For Agent Workflow**
-
+For Agent Workflow
 - Initialize a vector database (e.g., Qdrant, Weaviate).
-- Initialize a language model (LLM) (e.g., OpenAI).
-- Create an `IngestAgent` instance.
-- Use the `create_agent` method to generate a specific agent type (e.g., `IngestAnythingFunctionAgent`, `IngestCodeReActAgent`).
-- Ingest data using the agent's `ingest` method.
-- Retrieve the agent using the `get_agent` method for querying and interaction.
+- Initialize a local 7B language model (LLM) from Hugging Face (e.g., meta-llama/LLaMA-7B).
+- Create an IngestAgent instance.
+- Use the create_agent method to generate a specific agent type (e.g., IngestAnythingFunctionAgent, IngestCodeReActAgent).
+- Ingest data using the agent's ingest method.
+- Retrieve the agent using the get_agent method for querying and interaction.
 
-## Usage
+Usage
 
-`ingest-anything` can be installed using `pip` in the following way:
+ghostai-ingest can be installed using pip:
 
-```bash
-pip install ingest-anything
+pip install ghostai-ingest
 # or, for a faster installation
-uv pip install ingest-anything
-```
+uv pip install ghostai-ingest
 
-And is available in your python scripts:
+Running with Hugging Face Containers
 
-- You can **initialize the interface for text-based files** like this:
+To run the 7B model locally, use Hugging Face containers. For example, pull and run a container for meta-llama/LLaMA-7B:
 
-```python
+docker pull ghcr.io/huggingface/text-generation-inference:1.4
+docker run -d --gpus all -p 8080:80 -v /path/to/models:/models ghcr.io/huggingface/text-generation-inference:1.4 --model-id meta-llama/LLaMA-7B
+
+This sets up a local inference server for the 7B LLM, which you can point to in your scripts. Ensure you have sufficient GPU memory (e.g., 16GB VRAM) to run the 7B model efficiently.
+
+Initialize the Interface for Text-Based Files
+
 from qdrant_client import QdrantClient, AsyncQdrantClient
 from llama_index.vector_stores.qdrant import QdrantVectorStore
+from ghostai_ingest.ingestion import IngestAnything
 
 client_qdrant = QdrantClient("http://localhost:6333")
 aclient_qdrant = AsyncQdrantClient("http://localhost:6333")
 vector_store_qdrant = QdrantVectorStore(
-    collection_name="Test", client=client_qdrant, aclient=aclient_qdrant
+    collection_name="GhostAICollection", client=client_qdrant, aclient=aclient_qdrant
 )
 ingestor = IngestAnything(vector_store=vector_store_qdrant)
-```
 
-- And **ingest** your files:
+Ingest Your Files
 
-```python
-# with a list of files
+# With a list of files
 ingestor.ingest(
     chunker="late",
     files_or_dir=[
@@ -97,118 +87,89 @@ ingestor.ingest(
     ],
     embedding_model="sentence-transformers/all-MiniLM-L6-v2",
 )
-# with a directory
+# With a directory
 ingestor.ingest(
     chunker="token",
     files_or_dir="tests/data",
     tokenizer="gpt2",
     embedding_model="sentence-transformers/all-MiniLM-L6-v2",
 )
-```
 
-- You can also **initialize the interface for code files**
+Initialize the Interface for Code Files
 
-```python
-import os
-from dotenv import load_dotenv
 import weaviate
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
-from ingest_anything.ingestion import IngestCode
+from ghostai_ingest.ingestion import IngestCode
 
-load_dotenv()
-
-cluster_url = os.getenv("weaviate_cluster_url")
-api_key = os.getenv("weaviate_admin_key")
-client_weaviate = weaviate.connect_to_weaviate_cloud(
-    cluster_url=cluster_url,
-    auth_credentials=weaviate.auth.AuthApiKey(api_key),
-)
+client_weaviate = weaviate.Client("http://localhost:8080")
 vector_store_weaviate = WeaviateVectorStore(
-    weaviate_client=client_weaviate, index_name="Test"
+    weaviate_client=client_weaviate, index_name="GhostAICollection"
 )
 
-ingestor = IngestCode(vector_store=vector_store_qdrant)
-```
+ingestor = IngestCode(vector_store=vector_store_weaviate)
 
-- And then **ingest your code files**:
+Ingest Your Code Files
 
-```python
-os.environ["OPENAI_API_KEY"] = "YOUR_API_KEY"
 ingestor.ingest(
     files=[
         "tests/code/acronym.go",
         "tests/code/animal_magic.go",
         "tests/code/atbash_cipher_test.go",
     ],
-    embedding_model="text-embedding-3-small",
+    embedding_model="sentence-transformers/all-MiniLM-L6-v2",
     language="go",
 )
-```
 
-You can also ingest **data from the web**:
+Ingest Data from the Web
 
-```python
-import os
-from dotenv import load_dotenv
 import weaviate
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
-from ingest_anything.web_ingestion import IngestWeb
+from ghostai_ingest.web_ingestion import IngestWeb
 
-load_dotenv()
-
-cluster_url = os.getenv("weaviate_cluster_url")
-api_key = os.getenv("weaviate_admin_key")
-client_weaviate = weaviate.connect_to_weaviate_cloud(
-    cluster_url=cluster_url,
-    auth_credentials=weaviate.auth.AuthApiKey(api_key),
-)
+client_weaviate = weaviate.Client("http://localhost:8080")
 vector_store_weaviate = WeaviateVectorStore(
-    weaviate_client=client_weaviate, index_name="Test"
+    weaviate_client=client_weaviate, index_name="GhostAICollection"
 )
 
-ingestor = IngestWeb(vector_store=vector_store_qdrant)
-```
+ingestor = IngestWeb(vector_store=vector_store_weaviate)
 
-And now ingest starting from one or more URLs:
+Ingest from URLs
 
-```python
 import asyncio
 async def main():
-	await ingestor.ingest(
-    	urls = [
-        	"https://astrabert.github.io/hophop-science/AI-is-turning-nuclear-a-review/",
-        	"https://astrabert.github.io/hophop-science/BrAIn-next-generation-neurons/",
-        	"https://astrabert.github.io/hophop-science/Attention-and-open-source-is-all-you-need/",
-    	],
-    	chunker="slumber",
-    	slumber_genie="openai",
-    	slumber_model="gpt-4o-mini",
-    	embedding_model="sentence-transformers/all-MiniLM-L6-v2",
-	)
+    await ingestor.ingest(
+        urls=[
+            "https://astrabert.github.io/hophop-science/AI-is-turning-nuclear-a-review/",
+            "https://astrabert.github.io/hophop-science/BrAIn-next-generation-neurons/",
+            "https://astrabert.github.io/hophop-science/Attention-and-open-source-is-all-you-need/",
+        ],
+        chunker="slumber",
+        embedding_model="sentence-transformers/all-MiniLM-L6-v2",
+    )
 
 if __name__ == "__main__":
-	asyncio.run(main())
-```
+    asyncio.run(main())
 
-You can also create a **RAG agent in a fully automated way**:
+Create a RAG Agent
 
-```python
 from qdrant_client import QdrantClient
-from llama_index.llms.openai import OpenAI
+from transformers import pipeline
 from llama_index.vector_stores.qdrant import QdrantVectorStore
-from ingest_anything.agent import IngestAgent
+from ghostai_ingest.agent import IngestAgent
 
-# 1. Initialize Vector Database and LLM
+# Initialize Vector Database
 client = QdrantClient(":memory:")  # Or your Qdrant setup
-llm = OpenAI(api_key="YOUR_API_KEY")
 
-# 2. Initialize IngestAgent
+# Initialize Local 7B LLM from Hugging Face
+llm = pipeline("text-generation", model="meta-llama/LLaMA-7B", model_kwargs={"load_in_4bit": True})
+
+# Initialize IngestAgent
 agent_factory = IngestAgent()
 vector_store = QdrantVectorStore(
-    client=client, collection_name="my_collection"
+    client=client, collection_name="GhostAICollection"
 )
 
-# 3. Create Agent
+# Create Agent
 agent = agent_factory.create_agent(
     vector_database=vector_store,
     llm=llm,
@@ -216,7 +177,7 @@ agent = agent_factory.create_agent(
     agent_type="function_calling",  # or "react"
 )
 
-# 4. Ingest Data
+# Ingest Data
 agent.ingest(
     files_or_dir="path/to/documents",
     embedding_model="sentence-transformers/all-mpnet-base-v2",
@@ -224,15 +185,11 @@ agent.ingest(
     similarity_threshold=0.8,
 )
 
-# 5. Get Agent for Querying
-function_agent = (
-    agent.get_agent()
-)  # or react_agent = agent.get_agent() if you chose react
-```
+# Get Agent for Querying
+function_agent = agent.get_agent()  # or react_agent = agent.get_agent() if you chose react
 
-Find a representation of the agent workflow in the following diagram:
+Agent Workflow Diagram
 
-```mermaid
 graph LR
 A[Initialize Vector Database] --> B(Initialize LLM);
 B --> C{Create IngestAgent};
@@ -240,18 +197,19 @@ C --> D{Create Agent with create_agent};
 D --> E{Ingest Data with ingest};
 E --> F{Get Agent with get_agent};
 F --> G[Ready for Querying];
-```
 
-You can find a complete reference for the package in [REFERENCE.md](https://github.com/AstraBert/ingest-anything/tree/main/REFERENCE.md)
+You can find a complete reference for the package in REFERENCE.md (https://github.com/AstraBert/ingest-anything/tree/main/REFERENCE.md)
 
-### Contributing
+Contributing
 
 Contributions are always welcome!
 
-Find contribution guidelines at [CONTRIBUTING.md](https://github.com/AstraBert/ingest-anything/tree/main/CONTRIBUTING.md)
+Find contribution guidelines at CONTRIBUTING.md (https://github.com/AstraBert/ingest-anything/tree/main/CONTRIBUTING.md)
 
-### License and Funding
+License and Funding
 
-This project is open-source and is provided under an [MIT License](https://github.com/AstraBert/ingest-anything/tree/main/LICENSE).
+This project is open-source and is provided under an MIT License (https://github.com/AstraBert/ingest-anything/tree/main/LICENSE).
 
-If you found it useful, please consider [funding it](https://github.com/sponsors/AstraBert).
+If you found it useful, please consider funding it (https://github.com/sponsors/AstraBert).
+
+https://github.com/GhostAI/ghostai-ingest/blob/main/README.md
