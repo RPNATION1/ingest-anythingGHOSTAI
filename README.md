@@ -1,9 +1,8 @@
 👻 ghostai-ingest 👻
 Effortless Data Ingestion for Vector Databases by GhostAI 🚀
 
-Join Our Discord Community: https://discord.gg/ghostai 💬
-
-GhostAI-Ingest Logo: https://raw.githubusercontent.com/AstraBert/ingest-anything/main/logo.png
+Join Our Discord Community: https://discord.gg/y3ymyrveGb 💬
+[GhostAI-Ingest Logo: In a rendered format, the logo image would appear here. Source URL: https://raw.githubusercontent.com/AstraBert/ingest-anything/main/logo.png]
 
 ghostai-ingest is a white-label fork of ingest-anything, rebranded by GhostAI to deliver a powerful, open-source solution for ingesting non-PDF files into vector databases 🌟. Designed for GhostAI's cutting-edge workflows, this package avoids paid APIs by leveraging local LLMs and embedding models from Hugging Face (HF) containers 🛠️. It integrates chonkie (https://docs.chonkie.ai/getting-started/introduction), PdfItDown (https://github.com/AstraBert/PdfItDown), and LlamaIndex (https://www.llamaindex.ai) to provide an automated ingestion pipeline with minimal code ⚡.
 
@@ -12,7 +11,7 @@ Learn more about ghostai-ingest on GhostAI's Documentation website (under constr
 
 Workflow 🔄
 
-GhostAI-Ingest Workflow: https://raw.githubusercontent.com/AstraBert/ingest-anything/main/workflow.png
+[GhostAI-Ingest Workflow Diagram: In a rendered format, the workflow image would appear here. Source URL: https://raw.githubusercontent.com/AstraBert/ingest-anything/main/workflow.png]
 
 📝 For Text Files
 - Input files are converted to PDF by PdfItDown 📄.
